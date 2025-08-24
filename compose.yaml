@@ -1,0 +1,40 @@
+services:
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - db_api
+      - test_server
+
+  test_server:
+    container_name: test_server
+    privileged: true
+    build:
+      context: ./test_server
+
+  db_api:
+    container_name: db_api
+    image: postgrest/postgrest
+    environment:
+      - PGRST_DB_URI=postgres://authenticator:password@db:5432/app_db
+      - PGRST_DB_SCHEMAS=api
+      - PGRST_DB_ANON_ROLE=web_anon
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    container_name: db
+    image: postgres
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_DB=app_db
+      - POSTGRES_USER=authenticator
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"

@@ -1,0 +1,32 @@
+body {
+	padding-left: 34%;
+	padding-right: 34%;
+	background-color: #202020;
+	color: #ffffff;
+}
+
+h1, h3, h4 {
+	color: #e0e010
+}
+
+span {
+	border-radius: 5%;
+	background-color: #404040;
+	border: 0.1rem solid;
+}
+
+button {
+	float: right;
+	border-radius: 5%;
+	width: 100px;
+	height: 40px;
+	background-color: #404040;
+	color: #50ff50;
+}
+
+textarea {
+	resize: none;
+	border-radius: 2%;
+	background-color: #303030;
+	color: #ffff50;
+}
