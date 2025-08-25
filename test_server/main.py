@@ -15,11 +15,16 @@ app = Flask(__name__)
 
 @app.route('/', methods=['POST'])
 def test_submission():
+    try:
+        session_id = request.cookies['session_id'];
+    except:
+        return {'status': 'no_session_id'}
     # TODO: once debugging is done, DO NOT give descriptive error messages for hand-crafted invalid http requests
     try:
         code = request.json['code']
     except KeyError:
         return {'status': 'no_code'}
+
 
     if len(code) > MAX_CODE_LENGTH:
         return {'status': 'code_too_long'}
@@ -58,6 +63,6 @@ def test_submission():
 
     # TODO: error handling in case request fails
     if status == 0:
-        requests.patch('http://db_api:3000/users?username=eq.shaco', {challenge: True})
+        requests.patch('http://db_api:3000/users?username=eq.shaco', {challenge: True}, cookies={'session_id': session_id})
         return {'status': 'pass'}
     return {'status': 'fail'}

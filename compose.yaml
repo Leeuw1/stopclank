@@ -22,6 +22,7 @@ services:
       - PGRST_DB_URI=postgres://authenticator:password@db:5432/app_db
       - PGRST_DB_SCHEMAS=api
       - PGRST_DB_ANON_ROLE=web_anon
+      - PGRST_DB_PRE_REQUEST=validate_session
     ports:
       - "3000:3000"
     depends_on:
