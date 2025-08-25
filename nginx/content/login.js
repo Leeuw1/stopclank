@@ -7,12 +7,13 @@ button.onclick = (event) => {
 	if (username === '' || password === '') {
 		return;
 	}
-	console.log(username);
-	console.log(password);
-	apiCall('GET', `/api/db/users?username=eq.${username}&password=eq.${password}`).then(results => {
-		if (results === []) {
-			return;
+	const requestBody = {
+		login_username: username,
+		login_password: password,
+	};
+	apiCall('POST', '/api/db/rpc/login', requestBody).then(success => {
+		if (success) {
+			document.location.href = '/home';
 		}
-		document.location.href = '/home';
 	});
 }
