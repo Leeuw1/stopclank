@@ -9,7 +9,7 @@ EXPOSE 3000
 
 # Sandbox
 RUN apk update
-RUN apk add gcc make musl-dev linux-headers
+RUN apk add gcc make musl-dev linux-headers libseccomp-dev
 COPY main.py ./main.py
 COPY challenges ./challenges
 COPY sandbox ./sandbox

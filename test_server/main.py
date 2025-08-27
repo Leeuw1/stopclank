@@ -25,7 +25,6 @@ def test_submission():
     except KeyError:
         return {'status': 'no_code'}
 
-
     if len(code) > MAX_CODE_LENGTH:
         return {'status': 'code_too_long'}
 
@@ -40,18 +39,19 @@ def test_submission():
         if c in BLACKLIST or c not in string.printable:
             return {'status': 'invalid_challenge (bad characters)'}
 
-    tester_path = f'./challenges/{challenge}.py'
+    tester_path = f'challenges/{challenge}.py'
     if not os.path.isfile(tester_path):
         return {'status': 'invalid_challenge (tester not found)'}
 
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py') as code_file:
-        code_file.write(code)
-        code_file.flush()
-        args = ['sandbox', 'python', tester_path, code_file.name]
-        try:
-            status = subprocess.run(args, timeout=TIME_LIMIT_SECONDS).returncode
-        except subprocess.TimeoutExpired:
-            return {'status': 'time_expired'}
+    with tempfile.TemporaryDirectory() as sandbox_root:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', dir=sandbox_root) as code_file:
+            code_file.write(code)
+            code_file.flush()
+            args = ['sandbox', 'python', tester_path, os.path.basename(code_file.name)]
+            try:
+                status = subprocess.run(args, timeout=TIME_LIMIT_SECONDS, cwd=sandbox_root).returncode
+            except subprocess.TimeoutExpired:
+                return {'status': 'time_expired'}
 
     # TODO: error handling in case request fails
     if status == 0:
