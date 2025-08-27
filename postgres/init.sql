@@ -1,4 +1,5 @@
 CREATE SCHEMA api;
+CREATE SCHEMA extensions;
 
 /* TABLES */
 CREATE TABLE api.users (
@@ -9,7 +10,7 @@ CREATE TABLE api.users (
 );
 
 INSERT INTO api.users (username, password) VALUES
-	('shaco', '123'), ('clone', '456');
+	('shaco', '123'), ('clone', '456'), ('kpoud2@gmail.com', 'password');
 
 /* TODO: remove sessions after time expires */
 CREATE TABLE api.sessions (
@@ -21,11 +22,12 @@ CREATE TABLE api.sessions (
 /* ROLES */
 CREATE ROLE session_authorizer NOLOGIN;
 GRANT USAGE ON SCHEMA api TO session_authorizer;
+GRANT USAGE ON SCHEMA extensions TO session_authorizer;
 GRANT SELECT, INSERT ON api.sessions TO session_authorizer;
 GRANT SELECT ON api.users TO session_authorizer;
 
 CREATE ROLE web_anon NOLOGIN;
-GRANT USAGE ON SCHEMA API TO web_anon;
+GRANT USAGE ON SCHEMA api TO web_anon;
 GRANT SELECT, UPDATE(reverse_string) ON api.users TO web_anon;
 GRANT web_anon TO authenticator;
 
@@ -59,6 +61,55 @@ GRANT EXECUTE ON FUNCTION api.login(login_username TEXT, login_password TEXT) TO
 
 COMMIT;
 
+CREATE EXTENSION http SCHEMA extensions;
+
+BEGIN;
+CREATE FUNCTION api.login_google(google_id_token TEXT)
+RETURNS BOOLEAN AS $$
+DECLARE
+    google_response JSON;
+    user_email TEXT;
+    user_sub TEXT;
+    user_name TEXT;
+    new_session_id UUID;
+BEGIN
+    -- Verify the Google token via Google's endpoint
+    SELECT content::JSON INTO google_response
+    FROM extensions.http_get(
+        format('https://oauth2.googleapis.com/tokeninfo?id_token=%s', google_id_token)
+    );
+    -- Extract fields from Google response
+    user_email := google_response->>'email';
+    user_sub := google_response->>'sub';
+    user_name := google_response->>'name';
+	RAISE LOG 'Google login for %', user_email;
+
+    IF user_email IS NULL OR user_sub IS NULL THEN 
+        RETURN FALSE;
+    END IF;
+
+	IF NOT EXISTS(SELECT 1 FROM users WHERE LOWER(trim(username)) = LOWER(trim(user_email))) THEN
+    	RETURN FALSE;
+	END IF;
+
+	IF user_name IS NULL THEN
+		user_name := user_email;
+	END IF;
+
+	new_session_id := gen_random_uuid();
+	INSERT INTO api.sessions (session_id, username) VALUES (new_session_id, user_email);
+	/* TODO: Configure cookie expiration and use HTTPS + 'Secure' in cookie */
+	PERFORM set_config('response.headers', format('[{"Set-Cookie": "session_id=%s; Path=/api; HttpOnly"}]', new_session_id), true);
+	RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql
+   SECURITY DEFINER
+   SET search_path = api, pg_temp;
+ALTER FUNCTION api.login_google(google_id_token TEXT) OWNER TO session_authorizer;
+REVOKE ALL ON FUNCTION api.login_google(google_id_token TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION api.login_google(google_id_token TEXT) TO web_anon;
+COMMIT;
+
 
 BEGIN;
 
@@ -66,8 +117,9 @@ CREATE FUNCTION validate_session()
 RETURNS VOID AS $$
 DECLARE
 	current_session_id TEXT := current_setting('request.cookies', true)::JSON->>'session_id';
+	request_path TEXT := current_setting('request.path', true);
 BEGIN
-	IF current_setting('request.method', true) = 'POST' AND current_setting('request.path', true) = '/rpc/login' THEN
+	IF current_setting('request.method', true) = 'POST' AND (request_path = '/rpc/login' OR request_path = '/rpc/login_google') THEN
 		RETURN;
 	END IF;
 	IF NOT EXISTS(SELECT * FROM sessions WHERE session_id = current_session_id) THEN
