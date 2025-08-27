@@ -47,15 +47,7 @@ def test_submission():
     with tempfile.NamedTemporaryFile(mode='w', suffix='.py') as code_file:
         code_file.write(code)
         code_file.flush()
-        args = [
-            'bwrap',
-            '--new-session',
-            '--ro-bind', '/usr', '/usr',
-            '--ro-bind', '/lib', '/lib',
-            '--ro-bind', code_file.name, code_file.name,
-            '--',
-            'python', tester_path, code_file.name,
-        ]
+        args = ['sandbox', 'python', tester_path, code_file.name]
         try:
             status = subprocess.run(args, timeout=TIME_LIMIT_SECONDS).returncode
         except subprocess.TimeoutExpired:

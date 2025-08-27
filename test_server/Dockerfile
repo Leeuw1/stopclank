@@ -1,10 +1,21 @@
 FROM python:3-alpine
 WORKDIR /usr/src/app
-COPY requirements.txt ./
+
+# Flask
+COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
-RUN apk update
-RUN apk add bubblewrap
-COPY . .
 ENV FLASK_RUN_PORT=3000
 EXPOSE 3000
-CMD ["flask", "--app", "main", "run", "--host=0.0.0.0", "--debug"]
+
+# Sandbox
+RUN apk update
+RUN apk add gcc make musl-dev linux-headers
+COPY main.py ./main.py
+COPY challenges ./challenges
+COPY sandbox ./sandbox
+RUN (cd sandbox && make install)
+
+COPY entry.sh ./entry.sh
+
+CMD ["./entry.sh"]
+#CMD ["flask", "--app", "main", "run", "--host=0.0.0.0", "--debug"]
