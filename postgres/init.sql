@@ -24,7 +24,7 @@ CREATE ROLE session_authorizer NOLOGIN;
 GRANT USAGE ON SCHEMA api TO session_authorizer;
 GRANT USAGE ON SCHEMA extensions TO session_authorizer;
 GRANT SELECT, INSERT ON api.sessions TO session_authorizer;
-GRANT SELECT ON api.users TO session_authorizer;
+GRANT SELECT, INSERT ON api.users TO session_authorizer;
 
 CREATE ROLE web_anon NOLOGIN;
 GRANT USAGE ON SCHEMA api TO web_anon;
@@ -32,6 +32,28 @@ GRANT SELECT, UPDATE(reverse_string) ON api.users TO web_anon;
 GRANT web_anon TO authenticator;
 
 /* FUNCTIONS */
+BEGIN;
+CREATE FUNCTION api.signup(signup_username TEXT, signup_password TEXT)
+RETURNS BOOLEAN AS $$
+DECLARE
+	exists BOOLEAN;
+BEGIN
+	exists := EXISTS(SELECT * FROM users WHERE username = $1);
+	IF NOT exists THEN
+		INSERT INTO users (username, password) VALUES ($1, $2);
+		RAISE LOG 'Created new user %', $1;
+		RETURN TRUE;
+	END IF;
+	RETURN FALSE;
+END;
+$$	LANGUAGE plpgsql
+	SECURITY DEFINER
+	SET search_path = api, pg_temp;
+ALTER FUNCTION api.signup(signup_username TEXT, signup_password TEXT) OWNER TO session_authorizer;
+REVOKE ALL ON FUNCTION api.signup(signup_username TEXT, signup_password TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION api.signup(signup_username TEXT, signup_password TEXT) TO web_anon;
+COMMIT;
+
 BEGIN;
 
 /* If username and password match those of an existing user, create a session and return true */
@@ -89,7 +111,8 @@ BEGIN
     END IF;
 
 	IF NOT EXISTS(SELECT 1 FROM users WHERE LOWER(trim(username)) = LOWER(trim(user_email))) THEN
-    	RETURN FALSE;
+		INSERT INTO users (username, password) VALUES (user_email, user_sub);
+		RAISE LOG 'Created new user for %', user_email;
 	END IF;
 
 	IF user_name IS NULL THEN
@@ -119,7 +142,7 @@ DECLARE
 	current_session_id TEXT := current_setting('request.cookies', true)::JSON->>'session_id';
 	request_path TEXT := current_setting('request.path', true);
 BEGIN
-	IF current_setting('request.method', true) = 'POST' AND (request_path = '/rpc/login' OR request_path = '/rpc/login_google') THEN
+	IF current_setting('request.method', true) = 'POST' AND (request_path = '/rpc/login' OR request_path = '/rpc/login_google' OR request_path = '/rpc/signup') THEN
 		RETURN;
 	END IF;
 	IF NOT EXISTS(SELECT * FROM sessions WHERE session_id = current_session_id) THEN

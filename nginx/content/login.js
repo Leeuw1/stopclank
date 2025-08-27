@@ -18,6 +18,11 @@ button.onclick = (event) => {
 	});
 }
 
+const signUpButton = document.getElementById('signUpPage');
+signUpButton.onclick = (event) => {
+	document.location.href = '/signup';
+}
+
 const googleButtonDiv = document.getElementById('googleButton');
 
 // Initialize Google Identity Services once on page load
