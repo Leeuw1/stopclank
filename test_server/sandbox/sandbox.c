@@ -54,7 +54,12 @@ static void bind_mount(const char* source, const char* target) {
 		perror("mkdir failed");
 		exit(EXIT_FAILURE);
 	}
-	if (mount(source, target, NULL, MS_BIND | MS_RDONLY | MS_NOSUID, NULL) == -1) {
+	if (mount(source, target, NULL, MS_BIND, NULL) == -1) {
+		perror("mount failed");
+		exit(EXIT_FAILURE);
+	}
+	// Remount with desired flags
+	if (mount(NULL, target, NULL, MS_REMOUNT | MS_BIND | MS_RDONLY | MS_NOSUID, NULL) == -1) {
 		perror("mount failed");
 		exit(EXIT_FAILURE);
 	}
