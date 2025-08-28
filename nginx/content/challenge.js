@@ -1,5 +1,19 @@
 import { apiCall } from './api.js';
 
+function basename(path) {
+	return path.substr(path.lastIndexOf('/') + 1);
+}
+
+const challenge = basename(document.location.pathname);
+// TODO: maybe put this in a .json file
+const challengeInfo = {
+	reverse_string:	{
+		number:				1,
+		descriptionHtml:	'Given a string <code>s</code>, return <code>s</code> but with the characters in reverse order.',
+		codeTemplate:		'# Complete this function\ndef reverse_string(s):\n    ',
+	}
+}
+
 function log(msg) {
 	const logs = document.getElementById('logs');
 	logs.innerHTML += '<li> [DEBUG] ' + msg + '</li>'
@@ -7,30 +21,20 @@ function log(msg) {
 
 function setStatus(text, color) {
 	const status = document.getElementById('status');
-	status.innerText = text;
+	status.textContent = text;
 	status.style.color = color;
 }
 
 async function submitCode(code) {
 	// TODO: we can do some client-side validation
 	const requestBody = {
-		// NOTE: challenge is currently hard-coded
-		challenge:	'reverse_string',
+		challenge:	challenge,
 		code:		code,
 	};
 	return await apiCall('POST', '/api/test', requestBody);
 }
 
-async function challengeComplete(challenge) {
-	/*
-	const responseBody = {};
-	responseBody[challenge] = true;
-	const response = await apiCall(
-		'PATCH',
-		'/api/db/users?username=eq.shaco',
-		responseBody,
-	);
-	*/
+async function challengeComplete() {
 	const dbContents = await apiCall('GET', '/api/db/users');
 	log(JSON.stringify(dbContents));
 }
@@ -39,21 +43,32 @@ const button = document.getElementById('submitButton');
 button.onclick = (event) => {
 	const code = document.getElementById('codeArea').value;
 	submitCode(code).then(msg => {
+		if (msg.status === undefined) {
+			log('status=bad_request');
+			return;
+		}
 		log('status=' + msg.status);
 		if (msg.status === 'pass') {
 			setStatus('Passed!', '#00ff00');
-			challengeComplete('reverse_string').then(() => {});
+			challengeComplete().then(() => {});
 		}
 		else {
 			setStatus('Failed.', '#ff2020');
 		}
-	})
+	});
 }
 
 const codeArea = document.getElementById('codeArea');
 codeArea.oninput = (event) => {
 	setStatus('In progress...', '#00ccff');
 }
+
+// Initialize title, description, codeArea
+const title = document.getElementById('title');
+title.textContent = `Challenge #${challengeInfo[challenge].number}: ${challenge}`;
+const description = document.getElementById('description');
+description.innerHTML = challengeInfo[challenge].descriptionHtml;
+codeArea.textContent = challengeInfo[challenge].codeTemplate;
 
 // Initial status
 setStatus('In progress...', '#00ccff');
