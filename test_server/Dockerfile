@@ -9,7 +9,7 @@ EXPOSE 3000
 
 # Sandbox
 RUN apk update
-RUN apk add gcc make musl-dev linux-headers libseccomp-dev
+RUN apk add gcc make musl-dev linux-headers libseccomp-dev libcap-dev
 COPY main.py ./main.py
 COPY challenges ./challenges
 COPY sandbox ./sandbox
@@ -18,4 +18,3 @@ RUN (cd sandbox && make install)
 COPY entry.sh ./entry.sh
 
 CMD ["./entry.sh"]
-#CMD ["flask", "--app", "main", "run", "--host=0.0.0.0", "--debug"]

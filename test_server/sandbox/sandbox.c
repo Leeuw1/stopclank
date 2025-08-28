@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
+#include <sys/capability.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -53,7 +54,7 @@ static void bind_mount(const char* source, const char* target) {
 		perror("mkdir failed");
 		exit(EXIT_FAILURE);
 	}
-	if (mount(source, target, NULL, MS_BIND | MS_RDONLY, NULL) == -1) {
+	if (mount(source, target, NULL, MS_BIND | MS_RDONLY | MS_NOSUID, NULL) == -1) {
 		perror("mount failed");
 		exit(EXIT_FAILURE);
 	}
@@ -102,6 +103,14 @@ int main(int argc, char** argv) {
 		}
 		if (chroot(cwd) == -1) {
 			perror("chroot failed");
+			return EXIT_FAILURE;
+		}
+		if (chdir("/") == -1) {
+			perror("chdir failed");
+			return EXIT_FAILURE;
+		}
+		if (cap_set_mode(CAP_MODE_NOPRIV) == -1) {
+			perror("cap_set_mode failed");
 			return EXIT_FAILURE;
 		}
 		scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_KILL);
