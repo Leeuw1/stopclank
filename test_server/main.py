@@ -6,10 +6,14 @@ import subprocess
 import sys
 import string
 
+BAD_REQUEST = ({}, 400)
 MAX_CODE_LENGTH = 4096
 MAX_FILENAME_LENGTH = 64
 BLACKLIST = './'
 TIME_LIMIT_SECONDS = 4
+
+def log_error(msg):
+    sys.stderr.write('ERROR: ' + msg + '\n')
 
 app = Flask(__name__)
 
@@ -17,31 +21,43 @@ app = Flask(__name__)
 def test_submission():
     try:
         session_id = request.cookies['session_id'];
+    except KeyError:
+        log_error('No session_id')
+        return BAD_REQUEST
+    response = requests.get(f'http://db_api:3000/sessions?session_id=eq.{session_id}', cookies={'session_id': session_id})
+    try:
+        username = response.json()[0]['username']
     except:
-        return {'status': 'no_session_id'}
-    # TODO: once debugging is done, DO NOT give descriptive error messages for hand-crafted invalid http requests
+        log_error('Invalid session')
+        return BAD_REQUEST
     try:
         code = request.json['code']
     except KeyError:
-        return {'status': 'no_code'}
+        log_error('No code')
+        return BAD_REQUEST
 
     if len(code) > MAX_CODE_LENGTH:
-        return {'status': 'code_too_long'}
+        log_error('Code too long')
+        return BAD_REQUEST
 
     try:
         challenge = request.json['challenge']
     except KeyError:
-        return {'status': 'no_challenge'}
+        log_error('No challenge')
+        return BAD_REQUEST
 
     if len(challenge) > MAX_FILENAME_LENGTH:
-        return {'status': 'invalid_challenge (filename too long)'}
+        log_error('Invalid challenge (filename too long)')
+        return BAD_REQUEST
     for c in challenge:
         if c in BLACKLIST or c not in string.printable:
-            return {'status': 'invalid_challenge (bad characters)'}
+            log_error('Invalid challenge (bad characters)')
+            return BAD_REQUEST
 
     tester_path = f'challenges/{challenge}.py'
     if not os.path.isfile(tester_path):
-        return {'status': 'invalid_challenge (tester not found)'}
+        log_error('Invalid challenge (test script not found)')
+        return BAD_REQUEST
 
     with tempfile.TemporaryDirectory() as sandbox_root:
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', dir=sandbox_root) as code_file:
@@ -55,6 +71,6 @@ def test_submission():
 
     # TODO: error handling in case request fails
     if status == 0:
-        requests.patch('http://db_api:3000/users?username=eq.shaco', {challenge: True}, cookies={'session_id': session_id})
+        requests.patch(f'http://db_api:3000/users?username=eq.{username}', {challenge: True}, cookies={'session_id': session_id})
         return {'status': 'pass'}
     return {'status': 'fail'}

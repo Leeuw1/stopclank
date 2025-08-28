@@ -29,6 +29,7 @@ GRANT SELECT, INSERT ON api.users TO session_authorizer;
 CREATE ROLE web_anon NOLOGIN;
 GRANT USAGE ON SCHEMA api TO web_anon;
 GRANT SELECT, UPDATE(reverse_string) ON api.users TO web_anon;
+GRANT SELECT ON api.sessions TO web_anon;
 GRANT web_anon TO authenticator;
 
 /* FUNCTIONS */
