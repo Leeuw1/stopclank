@@ -8,8 +8,6 @@ import string
 
 BAD_REQUEST = ({}, 400)
 MAX_CODE_LENGTH = 4096
-MAX_FILENAME_LENGTH = 64
-BLACKLIST = './'
 TIME_LIMIT_SECONDS = 4
 
 def log_error(msg):
@@ -46,15 +44,7 @@ def test_submission():
         log_error('No challenge')
         return BAD_REQUEST
 
-    if len(challenge) > MAX_FILENAME_LENGTH:
-        log_error('Invalid challenge (filename too long)')
-        return BAD_REQUEST
-    for c in challenge:
-        if c in BLACKLIST or c not in string.printable:
-            log_error('Invalid challenge (bad characters)')
-            return BAD_REQUEST
-
-    tester_path = f'challenges/{challenge}.py'
+    tester_path = f'challenges/challenge{challenge}.py'
     if not os.path.isfile(tester_path):
         log_error('Invalid challenge (test script not found)')
         return BAD_REQUEST
@@ -71,6 +61,7 @@ def test_submission():
 
     # TODO: error handling in case request fails
     if status == 0:
-        requests.patch(f'http://db_api:3000/users?username=eq.{username}', {challenge: True}, cookies={'session_id': session_id})
+        request_body = {'chall_username': username, 'challenge': challenge}
+        requests.post(f'http://db_api:3000/rpc/set_challenge_completed', request_body, cookies={'session_id': session_id})
         return {'status': 'pass'}
     return {'status': 'fail'}

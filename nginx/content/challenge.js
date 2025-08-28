@@ -8,7 +8,7 @@ const challenge = basename(document.location.pathname);
 // TODO: maybe put this in a .json file
 const challengeInfo = {
 	reverse_string:	{
-		number:				1,
+		number:				0,
 		descriptionHtml:	'Given a string <code>s</code>, return <code>s</code> but with the characters in reverse order.',
 		codeTemplate:		'# Complete this function\ndef reverse_string(s):\n    ',
 	}
@@ -28,7 +28,7 @@ function setStatus(text, color) {
 async function submitCode(code) {
 	// TODO: we can do some client-side validation
 	const requestBody = {
-		challenge:	challenge,
+		challenge:	challengeInfo[challenge].number,
 		code:		code,
 	};
 	return await apiCall('POST', '/api/test', requestBody);
