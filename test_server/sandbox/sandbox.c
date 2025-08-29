@@ -79,11 +79,26 @@ int main(int argc, char** argv) {
 		| CLONE_NEWUSER
 		| CLONE_NEWUTS
 		| CLONE_NEWTIME;
-	const int cgroup_fd = open("/sys/fs/cgroup/sandbox_cgroup", O_RDONLY);
+	char cgroup_path[] = "/sys/fs/cgroup/sandboxXXXXXX";
+	if (mkdtemp(cgroup_path) == NULL) {
+		perror("mkdtemp failed");
+		return EXIT_FAILURE;
+	}
+	const int cgroup_fd = open(cgroup_path, O_RDONLY);
 	if (cgroup_fd == -1) {
 		perror("open failed");
 		return EXIT_FAILURE;
 	}
+	const int memory_max_fd = openat(cgroup_fd, "memory.max", O_CREAT | O_WRONLY);
+	if (memory_max_fd == -1) {
+		perror("openat failed");
+		return EXIT_FAILURE;
+	}
+	if (write(memory_max_fd, "20M", 3) == -1) {
+		perror("write failed");
+		return EXIT_FAILURE;
+	}
+	close(memory_max_fd);
 	const struct clone_args args = {
 		.flags			= clone_flags,
 		.exit_signal	= SIGCHLD,
@@ -129,9 +144,14 @@ int main(int argc, char** argv) {
 		perror("execvp failed");
 		return EXIT_FAILURE;
 	}
+	close(cgroup_fd);
 	int status;
 	if (waitpid(pid, &status, 0) == -1) {
 		perror("waitpid failed");
+		return EXIT_FAILURE;
+	}
+	if (rmdir(cgroup_path) == -1) {
+		perror("rmdir failed");
 		return EXIT_FAILURE;
 	}
 #ifdef DEBUG
