@@ -11,7 +11,12 @@ const challengeInfo = {
 		number:				0,
 		descriptionHtml:	'Given a string <code>s</code>, return <code>s</code> but with the characters in reverse order.',
 		codeTemplate:		'# Complete this function\ndef reverse_string(s):\n    ',
-	}
+	},
+	merge:	{
+		number:				1,
+		descriptionHtml:	'Given two sorted arrays, <code>a</code> and <code>b</code>, return an array with the elements of both <code>a</code> and <code>b</code> but in sorted order.',
+		codeTemplate:		'# Complete this function\ndef merge(a, b):\n    ',
+	},
 }
 
 function log(msg) {
