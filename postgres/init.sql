@@ -213,17 +213,16 @@ $$  LANGUAGE plpgsql SECURITY DEFINER;
 COMMIT;
 
 
-/* FUNCTION TO ADD A CHOSEN AUGMENT TO THE USER 
 BEGIN;
-CREATE FUNCTION api.choose_augment(p_username TEXT, p_augment_name TEXT)
-RETURNS VOID AS $$
-    UPDATE api.users
-    SET
-        augments = array_append(augments, p_augment_name)
-    WHERE username = p_username;
-$$  LANGUAGE sql SECURITY DEFINER;
-
-ALTER FUNCTION api.choose_augment(TEXT, TEXT) OWNER TO session_authorizer;
-GRANT EXECUTE ON FUNCTION api.choose_augment(TEXT, INT) TO session_authorizer;
+CREATE OR REPLACE FUNCTION api.add_augment(user_id INT, augment_key TEXT)
+RETURNS BOOLEAN AS $$
+DECLARE
+	user_augments TEXT[];
+BEGIN
+	UPDATE api.users 
+	SET augments = ARRAY_APPEND(augments, augment_key) WHERE id = user_id; 
+	RETURN TRUE;
+	/*TODO: Make certain augments that are one time effects happen and then dont add them to list (*eg. one time score increase of 500)*/
+END;
+$$  LANGUAGE plpgsql SECURITY DEFINER;
 COMMIT;
-*/
