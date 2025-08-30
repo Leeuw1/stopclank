@@ -39,10 +39,7 @@ async function submitCode(code) {
 	return await apiCall('POST', '/api/test', requestBody);
 }
 
-async function challengeComplete() {
-	const dbContents = await apiCall('GET', '/api/db/users');
-	log(JSON.stringify(dbContents));
-}
+
 
 const button = document.getElementById('submitButton');
 button.onclick = (event) => {
@@ -53,12 +50,15 @@ button.onclick = (event) => {
 			return;
 		}
 		log('status=' + msg.status);
-		if (msg.status === 'pass') {
+		if (msg.status === 'level_complete') {
 			setStatus('Passed!', '#00ff00');
-			challengeComplete().then(() => {});
+			setTimeout(() => {
+                window.location.href = '/run'; // Redirect to the main run page
+            }, 2000);
 		}
 		else {
 			setStatus('Failed.', '#ff2020');
+			//TODO lose a life when you make a bad submission
 		}
 	});
 }
