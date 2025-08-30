@@ -61,7 +61,7 @@ def test_submission():
 
     # TODO: error handling in case request fails
     if status == 0:
-        request_body = {'chall_username': username, 'challenge': challenge}
-        requests.post(f'http://db_api:3000/rpc/set_challenge_completed', request_body, cookies={'session_id': session_id})
-        return {'status': 'pass'}
+        request_body = {'p_username': username, 'p_score_increase': 100, 'challenge': challenge}
+        requests.post(f'http://db_api:3000/rpc/complete_level', request_body, cookies={'session_id': session_id})
+        return {'status': 'level_complete'}
     return {'status': 'fail'}
