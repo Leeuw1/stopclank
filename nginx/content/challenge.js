@@ -1,5 +1,25 @@
 import { apiCall, loadChallenges } from './api.js';
 
+const userCookie = document.cookie.split('; ').find(row => row.startsWith('user_id='));
+let userId;
+
+if (!userCookie) {
+    console.error('user_id cookie not found. Redirecting to login.');
+    window.location.href = '/login';
+} else {
+    userId = userCookie.split('=')[1];
+}
+
+const userInfo = await apiCall('GET', `/api/db/users?select=current_lives&id=eq.${userId}`);
+console.log('User lives from API:', userInfo);
+
+if (!userInfo || userInfo.length === 0) {
+    throw new Error('User not found in database. Please try logging in again.');
+}
+const lives = userInfo[0].current_lives;
+renderLives(lives);
+
+
 function basename(path) {
 	return path.substr(path.lastIndexOf('/') + 1);
 }
@@ -62,7 +82,18 @@ button.onclick = (event) => {
 		}
 		else {
 			setStatus('Failed.', '#ff2020');
-			//TODO lose a life when you make a bad submission
+			//lose a life, returns # of lives left
+			apiCall('POST', '/api/db/rpc/lose_life', { user_id: userId }).then(result => {
+				console.log('lose_life is returning: ', result);
+				renderLives(result);
+				if (result <= 0) {
+					alert('You have no lives left! Returning to home page.');
+					window.location.href = '/home';
+				}
+				else {
+					alert('You have ' + result + ' lives remaining.');
+				}
+			});
 		}
 	});
 }
@@ -84,3 +115,8 @@ loadChallenges().then(info => {
 	// Initial status
 	setStatus('In progress...', '#00ccff');
 });
+
+function renderLives(lives, maxLives=3) {
+    const livesDiv = document.getElementById('lives');
+    livesDiv.innerHTML = "❤️".repeat(lives) + "🤍".repeat(maxLives - lives); 
+}

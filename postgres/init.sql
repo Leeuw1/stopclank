@@ -226,3 +226,33 @@ BEGIN
 END;
 $$  LANGUAGE plpgsql SECURITY DEFINER;
 COMMIT;
+
+CREATE OR REPLACE FUNCTION api.lose_life(user_id INT)
+RETURNS INT AS $$
+DECLARE
+    lives_left INT;
+BEGIN
+    UPDATE api.users
+    SET current_lives = current_lives - 1
+    WHERE id = user_id
+      AND current_lives > 0
+    RETURNING current_lives INTO lives_left;
+
+    -- If no update happened (already 0 lives), fetch current value
+    IF NOT FOUND THEN
+        SELECT current_lives INTO lives_left
+        FROM api.users
+        WHERE id = user_id;
+    END IF;
+	-- If lives left is 0, then reset to 3 and current level and score to 0, and augments to empty array
+	IF lives_left = 0 THEN
+		UPDATE api.users
+		SET current_lives = 3,
+			current_level = 0,
+			current_score = 0,
+			augments = ARRAY[]::TEXT[]
+		WHERE id = user_id;
+	END IF;
+    RETURN lives_left;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
