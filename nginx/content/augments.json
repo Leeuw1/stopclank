@@ -1,0 +1,38 @@
+{
+    "increase_base_points_100": {
+        "type": "additive",
+        "description": "Gain 100 points every time you complete a challenge",
+        "unique": false,
+        "value": 100
+    },
+    "extra_points_500": {
+        "type": "points",
+        "description": "Gain 500 points one time",
+        "unique": false,
+        "value": 500
+    },
+    "extra_life_1": {
+        "type": "life",
+        "description": "Gain 1 extra life",
+        "unique": false,
+        "value": 1
+    },
+    "extra_life_3": {
+        "type": "life",
+        "description": "Gain 3 extra lives",
+        "unique": false,
+        "value": 3
+    },
+    "point_multiplier_50": {
+        "type": "multiplier",
+        "description": "Multiply future points earned by 1.5",
+        "unique": false,
+        "value": 1.5
+    },
+    "point_multiplier_100":{
+        "type": "multiplier",
+        "description": "Multiply future points earned by 2.0",
+        "unique": false,
+        "value": 2.0
+    }
+}

@@ -14,7 +14,8 @@ services:
     privileged: true
     cgroup: host
     build:
-      context: ./test_server
+      context: .
+      dockerfile: ./test_server/Dockerfile
 
   db_api:
     container_name: db_api

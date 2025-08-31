@@ -1,48 +1,10 @@
-import { apiCall } from "./api.js";
+import { apiCall, loadAugments } from "./api.js";
 
-const augmentList = {
-    increase_base_points_100: {
-        type: "additive",
-        description: "Gain 100 points every time you complete a challenge",
-        unique: false,
-        value: 100
-    },
-    extra_points_500: {
-        type: "points",
-        description: "Gain 500 points one time",
-        unique: false,
-        value: 500
-    },
-    extra_life_1: {
-        type: "life",
-        description: "Gain 1 extra life",
-        unique: false,
-        value: 1
-    },
-    extra_life_3: {
-        type: "life",
-        description: "Gain 3 extra lives",
-        unique: false,
-        value: 3
-    },
-    point_multiplier_50: {
-        type: "multiplier",
-        description: "Multiply future points earned by 1.5",
-        unique: false,
-        value: 1.5
-    },
-    point_multiplier_100:{
-        type: "multiplier",
-        description: "Multiply future points earned by 2.0",
-        unique: false,
-        value: 2.0
-    }
-};
 /*
 Possiple future augments: more text cases, hints, time extensions, skip level, lore, 
 */
 let userId = 0;
-window.onload = () => {
+async function onWindowLoad() {
     console.log("0");
     try {
         const userCookie = document.cookie.split('; ').find(row => row.startsWith('user_id='));
@@ -50,33 +12,29 @@ window.onload = () => {
         userId = userCookie.split('=')[1];
         console.log('User ID:', userId);
         console.log('2');
-        apiCall('GET', '/api/db/users?id=eq.' + userId)
-            .then(userInfo => { 
-                console.log('3');
-                console.log('User info from API:', userInfo);
+        const userInfo = await apiCall('GET', '/api/db/users?id=eq.' + userId);
+		console.log('3');
+		console.log('User info from API:', userInfo);
 
-                if (!userInfo || userInfo.length === 0) {
-                    throw new Error('User not found in database. Please try logging in again.');
-                }
-                const user = userInfo[0];
+		if (!userInfo || userInfo.length === 0) {
+			throw new Error('User not found in database. Please try logging in again.');
+		}
+		const user = userInfo[0];
 
-                //pick 2 random augments from the list
-                
-                populateUserAugments(user);
-                populateAugmentOptions();
-            }).catch(error => {
-                console.error('Failed to load page data:', error);
-                document.body.innerHTML = `<h1>Error loading page data</h1><p>${error.message}</p>`;
-            });
+		//pick 2 random augments from the list
+		populateUserAugments(user);
+		await populateAugmentOptions();
     } catch (error) {
         console.error('Failed to parse cookie:', error);
         window.location.href = '/login';
     }
-};
+}
+window.onload = onWindowLoad;
 
-function populateAugmentOptions(){
+async function populateAugmentOptions(){
     const augmentsDiv = document.getElementById('augmentsList');
     augmentsDiv.innerHTML = '<h2>Available Augments</h2>';
+	const augmentList = await loadAugments();
     const augmentKeys = Object.keys(augmentList);
     let augOne = getRandomInteger(0, augmentKeys.length - 1);
     let augTwo = -1;

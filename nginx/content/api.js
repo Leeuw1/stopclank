@@ -24,3 +24,8 @@ export async function loadChallenges() {
 	const response = await fetch('/challenges.json')
 	return await response.json();
 }
+
+export async function loadAugments() {
+	const response = await fetch('/augments.json')
+	return await response.json();
+}

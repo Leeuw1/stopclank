@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, json
 import requests
 import os
 import tempfile
@@ -10,6 +10,8 @@ BAD_REQUEST = ({}, 400)
 MAX_CODE_LENGTH = 4096
 TIME_LIMIT_SECONDS = 4
 DEFAULT_POINT_INCREASE = 100
+with open('./augments.json', 'r') as file:
+    AUGMENTS = json.load(file)
 
 def log_error(msg):
     sys.stderr.write('ERROR: ' + msg + '\n')
@@ -19,7 +21,7 @@ app = Flask(__name__)
 @app.route('/', methods=['POST'])
 def test_submission():
     try:
-        session_id = request.cookies['session_id'];
+        session_id = request.cookies['session_id']
     except KeyError:
         log_error('No session_id')
         return BAD_REQUEST
@@ -67,15 +69,6 @@ def test_submission():
         return {'status': 'level_complete'}
     return {'status': 'fail'}
 
-AUGMENT_DEFS = {
-    "increase_base_points_100": {"type": "additive", "value": 100},
-    "extra_points_500": {"type": "points", "value": 500},
-    "extra_life_1": {"type": "life", "value": 1},
-    "extra_life_3": {"type": "life", "value": 3},
-    "point_multiplier_50": {"type": "multiplier", "value": 1.5},
-    "point_multiplier_100": {"type": "multiplier", "value": 2.0},
-}
-
 def calculatePointIncrease(username, session_id):
     response = requests.get(f'http://db_api:3000/users?username=eq.{username}', cookies={'session_id': session_id})
     augments = response.json()[0]['augments']
@@ -86,7 +79,7 @@ def calculatePointIncrease(username, session_id):
     multiplier = 1.0
 
     for augment in augments:
-        aug_def = AUGMENT_DEFS.get(augment)
+        aug_def = AUGMENTS.get(augment)
         if not aug_def:
             continue  # skip unknown augments
 
