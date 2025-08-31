@@ -2,6 +2,7 @@
 <html>
 <head>
 	<link rel="stylesheet" href="/styles.css" type="text/css"/>
+	<script src="https://cdn.jsdelivr.net/pyodide/v0.28.2/full/pyodide.js"></script>
 	<script src="/challenge.js" type="module" defer></script>
 </head>
 <body>
@@ -11,9 +12,16 @@
 	<div>
 		<span><i id="status">In progress...</i></span>
 		<button id="submitButton"><b>Submit</b></button>
+		<button id="testButton"><b>Test</b></button>
 	</div>
 	<br>
 	<textarea id="codeArea" rows="30" cols="50"></textarea>
+	<table>
+		<tr id="testInputs">
+		</tr>
+		<tr id="testResults">
+		</tr>
+	</table>
 	<details>
 		<summary>See debug logs</summary>
 		<ol id="logs"></ol>

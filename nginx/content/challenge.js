@@ -11,11 +11,13 @@ const challengeInfo = {
 		number:				0,
 		descriptionHtml:	'Given a string <code>s</code>, return <code>s</code> but with the characters in reverse order.',
 		codeTemplate:		'# Complete this function\ndef reverse_string(s):\n    ',
+		tests:				['"lion"', '"elephant"', '"giraffe"'],
 	},
 	merge:	{
 		number:				1,
 		descriptionHtml:	'Given two sorted arrays, <code>a</code> and <code>b</code>, return an array with the elements of both <code>a</code> and <code>b</code> but in sorted order.',
 		codeTemplate:		'# Complete this function\ndef merge(a, b):\n    ',
+		tests:				['[1, 2], [3, 4]', '[2, 5], [1, 3]'],
 	},
 }
 
@@ -39,7 +41,23 @@ async function submitCode(code) {
 	return await apiCall('POST', '/api/test', requestBody);
 }
 
+const pyodidePromise = loadPyodide();
 
+async function runTest() {
+	const codeArea = document.getElementById('codeArea');
+	const pyodide = await pyodidePromise;
+	const inputRow = document.getElementById('testInputs');
+	const resultRow = document.getElementById('testResults');
+	inputRow.innerHTML = '<th>Test Input</th>' + challengeInfo[challenge].tests
+		.map(input => `<td>${input}</td>`)
+		.reduce((a, b) => a + b);
+	resultRow.innerHTML = '<th>Result</th>' + challengeInfo[challenge].tests
+		.map(input => `<td>${pyodide.runPython(codeArea.value + `\n${challenge}(${input})`)}</td>`)
+		.reduce((a, b) => a + b);
+}
+
+const testButton = document.getElementById('testButton');
+testButton.onclick = runTest;
 
 const button = document.getElementById('submitButton');
 button.onclick = (event) => {
