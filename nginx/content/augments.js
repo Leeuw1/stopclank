@@ -4,17 +4,14 @@ import { apiCall, loadAugments } from "./api.js";
 Possiple future augments: more text cases, hints, time extensions, skip level, lore, 
 */
 let userId = 0;
-async function onWindowLoad() {
-    console.log("0");
+window.onload = async () => {
     try {
         const userCookie = document.cookie.split('; ').find(row => row.startsWith('user_id='));
-        console.log('1');
         userId = userCookie.split('=')[1];
         console.log('User ID:', userId);
-        console.log('2');
+    
         const userInfo = await apiCall('GET', '/api/db/users?id=eq.' + userId);
-		console.log('3');
-		console.log('User info from API:', userInfo);
+        const allAugments = await loadAugments();
 
 		if (!userInfo || userInfo.length === 0) {
 			throw new Error('User not found in database. Please try logging in again.');
@@ -22,64 +19,79 @@ async function onWindowLoad() {
 		const user = userInfo[0];
 
 		//pick 2 random augments from the list
-		populateUserAugments(user);
-		await populateAugmentOptions();
+		populatePassiveAugments(user, allAugments);
+		populateAugmentOptions(allAugments);
     } catch (error) {
         console.error('Failed to parse cookie:', error);
         window.location.href = '/login';
     }
 }
-window.onload = onWindowLoad;
 
-async function populateAugmentOptions(){
-    const augmentsDiv = document.getElementById('augmentsList');
-    augmentsDiv.innerHTML = '<h2>Available Augments</h2>';
-	const augmentList = await loadAugments();
-    const augmentKeys = Object.keys(augmentList);
-    let augOne = getRandomInteger(0, augmentKeys.length - 1);
-    let augTwo = -1;
-    while (augTwo === -1 || augTwo === augOne) {
-        augTwo = getRandomInteger(0, augmentKeys.length - 1);
+function populatePassiveAugments(user, allAugments) {
+    const container = document.getElementById('passive-augments');
+    if (!user.augments || user.augments.length === 0) {
+        container.innerHTML += '<p>No passive abilities acquired yet.</p>';
+        return;
     }
-    const ul = document.createElement('ul');
-    [augOne, augTwo].forEach(index => {
-        const augmentKey = augmentKeys[index];
-        const augment = augmentList[augmentKey];
-        if (augment) {
-            const li = document.createElement('li');
-            li.textContent = `${augmentKey.replace(/_/g, ' ')}: + ${augment.description}`;
-            ul.appendChild(li);
-            //on click, send to backend to add to user augments
-            li.onclick = (event) => {
-                apiCall('POST', '/api/db/rpc/add_augment', { user_id: userId, augment_key: augmentKey }).then(success => {
-                    if (success) {
-                        document.location.href = '/run';
-                    } else {
-                        alert('Failed to add augment. Please try again.');
-                    }
-                });
+    
+    let content = '<ul>';
+    user.augments.forEach(augmentKey => {
+        const augmentDef = allAugments[augmentKey];
+        if (augmentDef) {
+            content += `<li><strong>${augmentDef.name}:</strong> ${augmentDef.description}</li>`;
         }
-    }});
-    augmentsDiv.appendChild(ul);
+    });
+    content += '</ul>';
+    container.innerHTML += content;
 }
 
-function populateUserAugments(user) {
-    const augmentsDiv = document.getElementById('userAugments');
-    let content = '<h2>Acquired Augments</h2>';
-    if (user.augments && user.augments.length > 0) {
-        content += '<ul>';
-        user.augments.forEach(augment => {
-            content += `<li>${augment}</li>`;
-        });
-        content += '</ul>';
-    } else {
-        content += '<p>No augments acquired yet. Complete challenges to earn them.</p>';
+function populateAugmentOptions(allAugments) {
+    const container = document.getElementById('augment-choices');
+    container.innerHTML = '<h2>Choose Your Upgrade</h2>';
+
+    const augmentKeys = Object.keys(allAugments);
+    const choices = getRandomItems(augmentKeys, 3); // Offer 3 random choices
+
+    const ul = document.createElement('ul');
+    ul.className = 'augment-list';
+
+    choices.forEach(augmentKey => {
+        const augment = allAugments[augmentKey];
+        const li = document.createElement('li');
+        li.className = 'augment-card';
+        li.innerHTML = `<h3>${augment.name}</h3><p>${augment.description}</p>`;
+        
+        li.onclick = () => handleAugmentChoice(augmentKey, augment.name, ul);
+        ul.appendChild(li);
+    });
+
+    container.appendChild(ul);
+}
+
+async function handleAugmentChoice(augmentKey, augmentName, listElement) {
+    console.log(`Chose augment: ${augmentKey}`);
+    listElement.innerHTML = `<p>Applying upgrade: <strong>${augmentName}</strong>...</p>`;
+    
+    try {
+        await apiCall('POST', '/api/db/rpc/add_augment', { p_user_id: parseInt(userId), p_augment_key: augmentKey });
+        window.location.href = '/run';
+    } catch (err) {
+        console.error("Failed to add augment:", err);
+        listElement.innerHTML = `<p style="color:red;">Error applying upgrade. Please refresh and try again.</p>`;
     }
-    augmentsDiv.innerHTML = content;
 }
 
-function getRandomInteger(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+function getRandomItems(arr, n) {
+    const result = new Array(n);
+    let len = arr.length;
+    const taken = new Array(len);
+    if (n > len) {
+        throw new RangeError("getRandomItems: more elements taken than available");
+    }
+    while (n--) {
+        const x = Math.floor(Math.random() * len);
+        result[n] = arr[x in taken ? taken[x] : x];
+        taken[x] = --len in taken ? taken[len] : len;
+    }
+    return result;
 }

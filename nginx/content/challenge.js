@@ -117,6 +117,7 @@ loadChallenges().then(info => {
 });
 
 function renderLives(lives, maxLives=3) {
+	if (lives > maxLives) maxLives = lives;
     const livesDiv = document.getElementById('lives');
     livesDiv.innerHTML = "❤️".repeat(lives) + "🤍".repeat(maxLives - lives); 
 }

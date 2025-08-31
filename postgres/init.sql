@@ -214,19 +214,48 @@ COMMIT;
 
 
 BEGIN;
-CREATE OR REPLACE FUNCTION api.add_augment(user_id INT, augment_key TEXT)
-RETURNS BOOLEAN AS $$
+/* FUNCTION TO ADD A CHOSEN AUGMENT TO A USER */
+CREATE OR REPLACE FUNCTION api.add_augment(p_user_id INT, p_augment_key TEXT)
+RETURNS VOID AS $$
 DECLARE
-	user_augments TEXT[];
+    aug_type TEXT;
+    aug_effect TEXT;
+    aug_value NUMERIC; -- Use NUMERIC to handle potential decimals from multipliers
 BEGIN
-	UPDATE api.users 
-	SET augments = ARRAY_APPEND(augments, augment_key) WHERE id = user_id; 
-	RETURN TRUE;
-	/*TODO: Make certain augments that are one time effects happen and then dont add them to list (*eg. one time score increase of 500)*/
+    -- This performs a lookup on the complete and correct hardcoded JSON data.
+    SELECT
+        aug->>'type', aug->>'effect', (aug->>'value')::NUMERIC
+    INTO
+        aug_type, aug_effect, aug_value
+    FROM json_each(
+        '{
+            "INSTANT_POINTS_250": {"type": "INSTANT_EFFECT", "effect": "ADD_POINTS", "value": 250},
+            "INSTANT_POINTS_500": {"type": "INSTANT_EFFECT", "effect": "ADD_POINTS", "value": 500},
+            "INSTANT_LIFE_1": {"type": "INSTANT_EFFECT", "effect": "ADD_LIVES", "value": 1},
+            "INSTANT_LIFE_3": {"type": "INSTANT_EFFECT", "effect": "ADD_LIVES", "value": 3},
+            "PASSIVE_SCORE_BOOST": {"type": "PASSIVE_EFFECT", "effect": "MODIFY_BASE_POINTS", "value": 100},
+            "PASSIVE_MULTIPLIER_SMALL": {"type": "PASSIVE_EFFECT", "effect": "MODIFY_POINT_MULTIPLIER", "value": 0.2},
+            "PASSIVE_MULTIPLIER_LARGE": {"type": "PASSIVE_EFFECT", "effect": "MODIFY_POINT_MULTIPLIER", "value": 0.5}
+        }'::json
+    ) AS aug_data(key, aug)
+    WHERE key = p_augment_key;
+
+    IF aug_type = 'INSTANT_EFFECT' THEN
+        -- Apply the effect immediately
+        IF aug_effect = 'ADD_POINTS' THEN
+            UPDATE api.users SET current_score = current_score + aug_value WHERE id = p_user_id;
+        ELSIF aug_effect = 'ADD_LIVES' THEN
+            UPDATE api.users SET current_lives = current_lives + aug_value WHERE id = p_user_id;
+        END IF;
+    ELSIF aug_type = 'PASSIVE_EFFECT' THEN
+        -- Add the augment to the user's list of passive abilities
+        UPDATE api.users SET augments = array_append(augments, p_augment_key) WHERE id = p_user_id;
+    END IF;
 END;
-$$  LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 COMMIT;
 
+BEGIN;
 CREATE OR REPLACE FUNCTION api.lose_life(user_id INT)
 RETURNS INT AS $$
 DECLARE
@@ -256,3 +285,4 @@ BEGIN
     RETURN lives_left;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+COMMIT;
