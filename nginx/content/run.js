@@ -1,21 +1,8 @@
-import { apiCall } from './api.js'
+import { apiCall, loadChallenges } from './api.js'
 
-const challengeData = {
-    "reverse_string": {
-        "number": 0,
-        "difficulty": 0,
-        "descriptionHtml": "Given a string <code>s</code>, return <code>s</code> but with the characters in reverse order.",
-        "codeTemplate": "# Complete this function\ndef reverse_string(s):\n    "
-    },
-    "merge": {
-        "number": 1,
-        "difficulty": 1,
-        "descriptionHtml": "Given two sorted arrays, <code>a</code> and <code>b</code>, return an array with the elements of both <code>a</code> and <code>b</code> but in sorted order.",
-        "codeTemplate": "# Complete this function\ndef merge(a, b):\n    "
-    }
-};
+let challengeData;
 
-window.onload = () => {
+async function onWindowLoad() {
     try {
         const userCookie = document.cookie.split('; ').find(row => row.startsWith('user_id='));
 
@@ -27,28 +14,24 @@ window.onload = () => {
 
         const userId = userCookie.split('=')[1];
         console.log('User ID:', userId);
-        apiCall('GET', '/api/db/users?id=eq.' + userId)
-            .then(userInfo => { 
-                console.log('User info from API:', userInfo);
+        const userInfo = await apiCall('GET', '/api/db/users?id=eq.' + userId);
+		console.log('User info from API:', userInfo);
 
-                if (!userInfo || userInfo.length === 0) {
-                    throw new Error('User not found in database. Please try logging in again.');
-                }
-                const user = userInfo[0];
+		if (!userInfo || userInfo.length === 0) {
+			throw new Error('User not found in database. Please try logging in again.');
+		}
+		const user = userInfo[0];
 
-                // Call the functions as before.
-                populateStats(user, challengeData);
-                populateAugments(user);
+		// Call the functions as before.
+		populateStats(user, await loadChallenges());
+		populateAugments(user);
 
-            }).catch(error => {
-                console.error('Failed to load page data:', error);
-                document.body.innerHTML = `<h1>Error loading page data</h1><p>${error.message}</p>`;
-            });
     } catch (error) {
         console.error('Failed to parse cookie:', error);
         window.location.href = '/login';
     }
-};
+}
+window.onload = onWindowLoad;
 
 
 /**

@@ -1,0 +1,14 @@
+{
+	"reverse_string": {
+		"number":			0,
+		"descriptionHtml":	"Given a string <code>s</code>, return <code>s</code> but with the characters in reverse order.",
+		"codeTemplate":		"# Complete this function\ndef reverse_string(s):\n    ",
+		"tests":			["\"lion\"", "\"elephant\"", "\"giraffe\""]
+	},
+	"merge": {
+		"number":			1,
+		"descriptionHtml":	"Given two sorted arrays, <code>a</code> and <code>b</code>, return an array with the elements of both <code>a</code> and <code>b</code> but in sorted order.",
+		"codeTemplate":		"# Complete this function\ndef merge(a, b):\n    ",
+		"tests":			["[1, 2], [3, 4]", "[2, 5], [1, 3]"]
+	}
+}

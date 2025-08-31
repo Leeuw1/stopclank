@@ -19,3 +19,8 @@ export async function apiCall(method, location, requestBody) {
 		return await response.json();
 	}
 }
+
+export async function loadChallenges() {
+	const response = await fetch('/challenges.json')
+	return await response.json();
+}

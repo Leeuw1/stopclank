@@ -1,25 +1,11 @@
-import { apiCall } from './api.js';
+import { apiCall, loadChallenges } from './api.js';
 
 function basename(path) {
 	return path.substr(path.lastIndexOf('/') + 1);
 }
 
 const challenge = basename(document.location.pathname);
-// TODO: maybe put this in a .json file
-const challengeInfo = {
-	reverse_string:	{
-		number:				0,
-		descriptionHtml:	'Given a string <code>s</code>, return <code>s</code> but with the characters in reverse order.',
-		codeTemplate:		'# Complete this function\ndef reverse_string(s):\n    ',
-		tests:				['"lion"', '"elephant"', '"giraffe"'],
-	},
-	merge:	{
-		number:				1,
-		descriptionHtml:	'Given two sorted arrays, <code>a</code> and <code>b</code>, return an array with the elements of both <code>a</code> and <code>b</code> but in sorted order.',
-		codeTemplate:		'# Complete this function\ndef merge(a, b):\n    ',
-		tests:				['[1, 2], [3, 4]', '[2, 5], [1, 3]'],
-	},
-}
+let challengeInfo;
 
 function log(msg) {
 	const logs = document.getElementById('logs');
@@ -86,12 +72,15 @@ codeArea.oninput = (event) => {
 	setStatus('In progress...', '#00ccff');
 }
 
-// Initialize title, description, codeArea
-const title = document.getElementById('title');
-title.textContent = `Challenge #${challengeInfo[challenge].number}: ${challenge}`;
-const description = document.getElementById('description');
-description.innerHTML = challengeInfo[challenge].descriptionHtml;
-codeArea.textContent = challengeInfo[challenge].codeTemplate;
+loadChallenges().then(info => {
+	challengeInfo = info;
+	// Initialize title, description, codeArea
+	const title = document.getElementById('title');
+	title.textContent = `Challenge #${challengeInfo[challenge].number}: ${challenge}`;
+	const description = document.getElementById('description');
+	description.innerHTML = challengeInfo[challenge].descriptionHtml;
+	codeArea.textContent = challengeInfo[challenge].codeTemplate;
 
-// Initial status
-setStatus('In progress...', '#00ccff');
+	// Initial status
+	setStatus('In progress...', '#00ccff');
+});
