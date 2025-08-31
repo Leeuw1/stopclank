@@ -70,7 +70,7 @@ function populateStats(user, challengeData) {
     } else {
         taskDiv.innerHTML = `
             <h2>Current Task</h2>
-            <p>You have completed all available challenges! Congratulations!</p>
+            <p>You have completed all available challenges with a score of ${user.current_score}! Congratulations!</p>
         `;
     }
 }

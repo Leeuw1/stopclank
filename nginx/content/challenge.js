@@ -53,7 +53,7 @@ button.onclick = (event) => {
 		if (msg.status === 'level_complete') {
 			setStatus('Passed!', '#00ff00');
 			setTimeout(() => {
-                window.location.href = '/run'; // Redirect to the main run page
+                window.location.href = '/augments'; // Redirect to the main run page
             }, 2000);
 		}
 		else {

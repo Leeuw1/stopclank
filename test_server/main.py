@@ -9,6 +9,7 @@ import string
 BAD_REQUEST = ({}, 400)
 MAX_CODE_LENGTH = 4096
 TIME_LIMIT_SECONDS = 4
+DEFAULT_POINT_INCREASE = 100
 
 def log_error(msg):
     sys.stderr.write('ERROR: ' + msg + '\n')
@@ -61,7 +62,44 @@ def test_submission():
 
     # TODO: error handling in case request fails
     if status == 0:
-        request_body = {'p_username': username, 'p_score_increase': 100, 'challenge': challenge}
+        request_body = {'p_username': username, 'p_score_increase': calculatePointIncrease(username, session_id), 'challenge': challenge}
         requests.post(f'http://db_api:3000/rpc/complete_level', request_body, cookies={'session_id': session_id})
         return {'status': 'level_complete'}
     return {'status': 'fail'}
+
+AUGMENT_DEFS = {
+    "increase_base_points_100": {"type": "additive", "value": 100},
+    "extra_points_500": {"type": "points", "value": 500},
+    "extra_life_1": {"type": "life", "value": 1},
+    "extra_life_3": {"type": "life", "value": 3},
+    "point_multiplier_50": {"type": "multiplier", "value": 1.5},
+    "point_multiplier_100": {"type": "multiplier", "value": 2.0},
+}
+
+def calculatePointIncrease(username, session_id):
+    response = requests.get(f'http://db_api:3000/users?username=eq.{username}', cookies={'session_id': session_id})
+    augments = response.json()[0]['augments']
+    
+    # start with base points
+    base_points = DEFAULT_POINT_INCREASE
+    one_time_points = 0
+    multiplier = 1.0
+
+    for augment in augments:
+        aug_def = AUGMENT_DEFS.get(augment)
+        if not aug_def:
+            continue  # skip unknown augments
+
+        if aug_def["type"] == "additive":
+            base_points += aug_def["value"]
+
+        elif aug_def["type"] == "points":
+            one_time_points += aug_def["value"]
+
+        elif aug_def["type"] == "multiplier":
+            multiplier *= aug_def["value"]
+
+    # apply multiplier last
+    total_points = int((base_points + one_time_points) * multiplier)
+
+    return total_points

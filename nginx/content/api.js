@@ -12,7 +12,9 @@ export async function apiCall(method, location, requestBody) {
 		request.headers = requestHeaders;
 		request.body = JSON.stringify(requestBody);
 	}
+	console.log('API Call:', method, location, requestBody);
 	const response = await fetch(location, request);
+	console.log('API Response:', response.status, response);
 	if (response.status !== HTTP_STATUS_NO_CONTENT) {
 		return await response.json();
 	}
