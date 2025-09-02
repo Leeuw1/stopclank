@@ -56,8 +56,12 @@ function populateStats(user) {
 
 function populateTask(user, challengeData) {
     const taskDiv = document.getElementById('task');
-    // Find the challenge name that corresponds to the user's current level
-    const challengeName = Object.keys(challengeData).find(key => challengeData[key].number === user.current_level);
+    // Find the challenge name whose difficulty corresponds to the user's current level
+    const availableChallenges = Object.keys(challengeData).filter(key => 
+        challengeData[key].difficulty === user.current_level
+    );
+    const randomIndex = Math.floor(Math.random() * availableChallenges.length);
+    const challengeName = availableChallenges[randomIndex];
 
     if (challengeName) {
         taskDiv.innerHTML = `
@@ -70,6 +74,7 @@ function populateTask(user, challengeData) {
             <h2>Current Task</h2>
             <p>You have completed all available challenges with a score of ${user.current_score}! Congratulations!</p>
         `;
+        document.location.href = '/home';
     }
 }
 
