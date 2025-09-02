@@ -8,6 +8,10 @@
     --accent-green: #50ff50;
     --accent-yellow: #ffff50;
     --border-color: #555;
+    --accent-red: #FF1744;
+    --rarity-common: #B0BEC5;  
+    --rarity-uncommon: #66BB6A; 
+    --rarity-rare: #42A5F5;     
 }
 
 /* --- Base & Layout --- */
@@ -89,22 +93,35 @@ button:hover {
 .augment-card {
     background-color: var(--panel-bg);
     border: 1px solid var(--border-color);
+    border-left-width: 5px;
     padding: 1em;
     margin-bottom: 1em;
     border-radius: 4px;
     cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
+    transition: border-color 0.2s, background-color 0.2s, transform 0.2s;
 }
 
 .augment-card:hover {
     border-color: var(--accent-yellow);
     background-color: #3a3a3a;
+    transform: translateX(5px); /* Add a subtle slide effect on hover */
+
 }
 
 .augment-card h3 {
     margin-top: 0;
     border: none;
+    color: var(--text-color);
+
 }
+
+.rarity-common { border-left-color: var(--rarity-common); }
+.rarity-uncommon { border-left-color: var(--rarity-uncommon); }
+.rarity-rare { border-left-color: var(--rarity-rare); }
+
+.rarity-common h3 { color: var(--rarity-common); }
+.rarity-uncommon h3 { color: var(--rarity-uncommon); }
+.rarity-rare h3 { color: var(--rarity-rare); }
 
 /* --- Challenge Page Specifics --- */
 #codeArea {
@@ -156,3 +173,33 @@ td {
     box-shadow: 0 0 15px var(--accent-yellow); /* Add a glow effect */
 }
 
+
+#story {
+    background-color: #1a1a1a;
+    border: 1px solid var(--border-color);
+    padding: 1.5em;
+    margin-bottom: 2em;
+    font-size: 1.2em;
+    color: var(--accent-green);
+    text-align: center;
+    min-height: 1.5em; /* Reserve space while typing */
+    font-weight: bold;
+}
+
+.setting-highlight {
+    color: var(--accent-red);
+    font-weight: bolder;
+    text-transform: uppercase; 
+}
+
+.typewriter-cursor {
+    display: inline-block;
+    background-color: var(--accent-green);
+    /* Blinking animation */
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    from, to { background-color: transparent }
+    50% { background-color: var(--accent-green); }
+}
