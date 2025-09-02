@@ -25,8 +25,15 @@ signUpButton.onclick = (event) => {
 
 const googleButtonDiv = document.getElementById('googleButton');
 
-// Initialize Google Identity Services once on page load
 window.onload = () => {
+	const userCookie = document.cookie.split('; ').find(row => row.startsWith('user_id='));
+
+    // If the cookie is found, the user is likely already logged in.
+    if (userCookie) {
+        console.log('alr logged in!');
+        document.location.href = '/home';
+        return; 
+    }
 	google.accounts.id.initialize({
 		client_id: '656875104001-epld0cd8pame8tu3gk79gocv8usjisme.apps.googleusercontent.com',
 		callback: handleGoogleResponse,
