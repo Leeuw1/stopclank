@@ -73,11 +73,8 @@ function populateTask(user, challengeData) {
     }
 }
 
-/**
- * Fills the 'augments' div with a list of the user's acquired augments.
- * @param {object} user - The user data object from the API.
- */
-function populateAugments(user) {
+
+function populateAugments(user, allAugments) {
     const augmentsDiv = document.getElementById('augments');
     let content = '<h2>Acquired Augments</h2>';
     if (user.augments && user.augments.length > 0) {
