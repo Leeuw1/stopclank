@@ -58,7 +58,9 @@ function populateAugmentOptions(allAugments) {
     choices.forEach(augmentKey => {
         const augment = allAugments[augmentKey];
         const li = document.createElement('li');
-        li.className = 'augment-card';
+        
+        li.className = `augment-card rarity-${augment.rarity || 'common'}`;
+        
         li.innerHTML = `<h3>${augment.name}</h3><p>${augment.description}</p>`;
         
         li.onclick = () => handleAugmentChoice(augmentKey, augment.name, ul);

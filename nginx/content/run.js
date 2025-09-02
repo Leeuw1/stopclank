@@ -1,5 +1,10 @@
 import { apiCall, loadAugments, loadChallenges} from './api.js'
 
+const storySetting = [
+    "Prison cell",
+    "...",
+    "Oval office"
+]
 
 async function onWindowLoad() {
     try {
@@ -27,6 +32,7 @@ async function onWindowLoad() {
 		const user = userInfo[0];
 
 		// Call the functions as before.
+        populateStorySetting(user, challengeData);
 		populateStats(user);
         populateTask(user, challengeData);
         populateAugments(user, allAugments);
@@ -39,7 +45,86 @@ async function onWindowLoad() {
 }
 window.onload = onWindowLoad();
 
+function typewriterEffect(element, htmlString, speed = 30) {
+    // 1. Create a temporary, hidden element to parse the HTML string.
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlString;
 
+    // 2. Extract all the text and node information.
+    const nodes = [];
+    function extractNodes(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            if (node.textContent.trim().length > 0) {
+                nodes.push({ type: 'text', content: node.textContent });
+            }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            nodes.push({ type: 'open', tag: node.cloneNode(false) });
+            node.childNodes.forEach(extractNodes);
+            nodes.push({ type: 'close', tag: node.tagName });
+        }
+    }
+    tempDiv.childNodes.forEach(extractNodes);
+
+    // 3. Type out the content node by node.
+    element.innerHTML = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'typewriter-cursor';
+    cursor.innerHTML = '&nbsp;';
+    element.appendChild(cursor);
+
+    let currentElement = element;
+    let nodeIndex = 0;
+
+    function processNode() {
+        if (nodeIndex >= nodes.length) return;
+
+        const nodeInfo = nodes[nodeIndex++];
+        if (nodeInfo.type === 'open') {
+            const newElement = nodeInfo.tag;
+            currentElement.insertBefore(newElement, cursor);
+            currentElement = newElement;
+            // --- FIX: Move the cursor inside the new element ---
+            currentElement.appendChild(cursor);
+        } else if (nodeInfo.type === 'close') {
+            const parent = currentElement.parentNode;
+            // --- FIX: Move the cursor back to the parent element ---
+            if (parent) {
+                parent.insertBefore(cursor, currentElement.nextSibling);
+                currentElement = parent;
+            }
+        } else if (nodeInfo.type === 'text') {
+            typeText(nodeInfo.content);
+            return; // Pause execution until text is typed
+        }
+        processNode(); // Immediately process next tag
+    }
+
+    function typeText(text) {
+        let i = 0;
+        function type() {
+            if (i < text.length) {
+                currentElement.insertBefore(document.createTextNode(text[i]), cursor);
+                i++;
+                setTimeout(type, speed);
+            } else {
+                processNode(); // Finished typing text, move to next node
+            }
+        }
+        type();
+    }
+
+    processNode();
+}
+
+function populateStorySetting(user){
+    const storyDiv = document.getElementById('story');
+    const setting = storySetting[user.current_level] || "an Unknown Location";
+    
+    // Construct the text with a span for highlighting
+    const fullText = `Current Location: <span class="setting-highlight">${setting}</span>`;
+    
+    typewriterEffect(storyDiv, fullText);
+}
 
 function populateStats(user) {
     const statsDiv = document.getElementById('stats');
