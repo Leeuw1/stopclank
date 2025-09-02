@@ -1,6 +1,5 @@
-import { apiCall, loadChallenges } from './api.js'
+import { apiCall, loadAugments, loadChallenges} from './api.js'
 
-let challengeData;
 
 async function onWindowLoad() {
     try {
@@ -13,9 +12,14 @@ async function onWindowLoad() {
         }
 
         const userId = userCookie.split('=')[1];
-        console.log('User ID:', userId);
+        
+        //fetch the data
         const userInfo = await apiCall('GET', '/api/db/users?id=eq.' + userId);
-		console.log('User info from API:', userInfo);
+        console.log('0: User info from API:', userInfo);
+        const allAugments = await loadAugments();
+        console.log('1: All augments from API:', allAugments);
+        const challengeData = await loadChallenges();
+        console.log('3: Challenge data:', challengeData);
 
 		if (!userInfo || userInfo.length === 0) {
 			throw new Error('User not found in database. Please try logging in again.');
@@ -23,24 +27,35 @@ async function onWindowLoad() {
 		const user = userInfo[0];
 
 		// Call the functions as before.
-		populateStats(user, await loadChallenges());
-		populateAugments(user);
+		populateStats(user);
+        populateTask(user, challengeData);
+        populateAugments(user, allAugments);
+
 
     } catch (error) {
         console.error('Failed to parse cookie:', error);
         window.location.href = '/login';
     }
 }
-window.onload = onWindowLoad;
+window.onload = onWindowLoad();
 
 
-/**
- * Fills the 'task' div with the current objective and a link to the challenge.
- * @param {object} user - The user data object from the API.
- * @param {object} challengeData - The parsed challengeInfo.json data.
- */
-function populateStats(user, challengeData) {
-    const taskDiv = document.getElementById('stats');
+
+function populateStats(user) {
+    const statsDiv = document.getElementById('stats');
+    statsDiv.innerHTML = `
+        <h2>Your Stats</h2>
+        <ul>
+            <li>High Score: ${user.high_score}</li>
+            <li>Furthest Level Reached: ${user.furthest_level}</li>
+            <li>Current Lives: ${user.current_lives}</li>
+        </ul>
+    `;
+}
+
+
+function populateTask(user, challengeData) {
+    const taskDiv = document.getElementById('task');
     // Find the challenge name that corresponds to the user's current level
     const challengeName = Object.keys(challengeData).find(key => challengeData[key].number === user.current_level);
 
@@ -58,23 +73,20 @@ function populateStats(user, challengeData) {
     }
 }
 
-/**
- * Fills the 'augments' div with a list of the user's acquired augments.
- * @param {object} user - The user data object from the API.
- */
-function populateAugments(user) {
+
+function populateAugments(user, allAugments) {
     const augmentsDiv = document.getElementById('augments');
     let content = '<h2>Acquired Augments</h2>';
     if (user.augments && user.augments.length > 0) {
         content += '<ul>';
         user.augments.forEach(augment => {
-            content += `<li>${augment}</li>`;
+            const augmentDef = allAugments[augment];
+            content += `<li><strong>${augmentDef.name}:</strong> ${augmentDef.description}</li>`;
         });
         content += '</ul>';
+        augmentsDiv.innerHTML += content;
     } else {
-        content += '<p>No augments acquired yet. Complete challenges to earn them.</p>';
+        augmentsDiv.innerHTML += '<p>No passive abilities acquired yet.</p>';
     }
-    augmentsDiv.innerHTML = content;
 }
-//Then, add flavour text, then redirect them to the appropriate challenge, or let them choose an 'augment'
 

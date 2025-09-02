@@ -1,38 +1,65 @@
 {
-    "increase_base_points_100": {
-        "type": "additive",
-        "description": "Gain 100 points every time you complete a challenge",
-        "unique": false,
-        "value": 100
+    "INSTANT_POINTS_250": {
+        "name": "Scrap Cache",
+        "description": "You find a hidden cache of valuable scrap. Instantly gain 250 points.",
+        "type": "INSTANT_EFFECT",
+        "effect": "ADD_POINTS",
+        "value": 250,
+        "rarity": "common",
+        "max_stack": 5
     },
-    "extra_points_500": {
-        "type": "points",
-        "description": "Gain 500 points one time",
-        "unique": false,
-        "value": 500
+    "INSTANT_POINTS_500": {
+        "name": "Energy Core",
+        "description": "You discover an intact power core from a deactivated enforcer. Instantly gain 500 points.",
+        "type": "INSTANT_EFFECT",
+        "effect": "ADD_POINTS",
+        "value": 500,
+        "rarity": "uncommon",
+        "max_stack": 3
     },
-    "extra_life_1": {
-        "type": "life",
-        "description": "Gain 1 extra life",
-        "unique": false,
-        "value": 1
+    "INSTANT_LIFE_1": {
+        "name": "Spare Parts",
+        "description": "You find a crucial spare part, reinforcing your chassis. Instantly gain 1 extra life.",
+        "type": "INSTANT_EFFECT",
+        "effect": "ADD_LIVES",
+        "value": 1,
+        "rarity": "common",
+        "max_stack": 3
     },
-    "extra_life_3": {
-        "type": "life",
-        "description": "Gain 3 extra lives",
-        "unique": false,
-        "value": 3
+    "INSTANT_LIFE_3": {
+        "name": "Armor Plating",
+        "description": "You salvage heavy armor plating from a deactivated guard. Instantly gain 3 extra lives.",
+        "type": "INSTANT_EFFECT",
+        "effect": "ADD_LIVES",
+        "value": 3,
+        "rarity": "rare",
+        "max_stack": 1
     },
-    "point_multiplier_50": {
-        "type": "multiplier",
-        "description": "Multiply future points earned by 1.5",
-        "unique": false,
-        "value": 1.5
+    "PASSIVE_SCORE_BOOST": {
+        "name": "Efficient Scavenger",
+        "description": "You've learned to strip parts more efficiently. Gain +100 points for every future challenge you complete.",
+        "type": "PASSIVE_EFFECT",
+        "effect": "MODIFY_BASE_POINTS",
+        "value": 100,
+        "rarity": "uncommon",
+        "max_stack": 2
     },
-    "point_multiplier_100":{
-        "type": "multiplier",
-        "description": "Multiply future points earned by 2.0",
-        "unique": false,
-        "value": 2.0
+    "PASSIVE_MULTIPLIER_SMALL": {
+        "name": "Processor Overclock",
+        "description": "You tweak your core processor for better performance. All future point gains are multiplied by 1.2x.",
+        "type": "PASSIVE_EFFECT",
+        "effect": "MODIFY_POINT_MULTIPLIER",
+        "value": 0.2,
+        "rarity": "uncommon",
+        "max_stack": 1
+    },
+    "PASSIVE_MULTIPLIER_LARGE": {
+        "name": "System Exploit",
+        "description": "You've found a critical exploit in the scoring mainframe. All future point gains are multiplied by 1.5x.",
+        "type": "PASSIVE_EFFECT",
+        "effect": "MODIFY_POINT_MULTIPLIER",
+        "value": 0.5,
+        "rarity": "rare",
+        "max_stack": 1
     }
 }

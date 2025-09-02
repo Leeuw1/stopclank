@@ -25,7 +25,14 @@ export async function loadChallenges() {
 	return await response.json();
 }
 
+let augmentDataCache = null;
+
 export async function loadAugments() {
-	const response = await fetch('/augments.json')
-	return await response.json();
+	if (augmentDataCache) {
+		return augmentDataCache;
+	}
+	const response = await fetch('/augments.json');
+	augmentDataCache = await response.json();
+	return augmentDataCache;
 }
+

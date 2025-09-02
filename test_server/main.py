@@ -60,37 +60,33 @@ def test_submission():
 
     # TODO: error handling in case request fails
     if status == 0:
-        request_body = {'p_username': username, 'p_score_increase': calculatePointIncrease(username, session_id), 'challenge': challenge}
+        user_response = requests.get(f'http://db_api:3000/users?select=augments&username=eq.{username}', cookies={'session_id': session_id})
+        user_augments = user_response.json()[0].get('augments', [])
+
+        request_body = {'p_username': username, 'p_score_increase': calculatePointIncrease(user_augments), 'challenge': challenge}
         requests.post(f'http://db_api:3000/rpc/complete_level', request_body, cookies={'session_id': session_id})
         return {'status': 'level_complete'}
     if status == 2:
         return {'status': 'time_expired'}
     return {'status': 'fail'}
 
-def calculatePointIncrease(username, session_id):
-    response = requests.get(f'http://db_api:3000/users?username=eq.{username}', cookies={'session_id': session_id})
-    augments = response.json()[0]['augments']
-    
+def calculatePointIncrease(user_augments):
     # start with base points
     base_points = DEFAULT_POINT_INCREASE
-    one_time_points = 0
     multiplier = 1.0
 
-    for augment in augments:
+    for augment in user_augments:
         aug_def = AUGMENTS.get(augment)
         if not aug_def:
             continue  # skip unknown augments
 
-        if aug_def["type"] == "additive":
-            base_points += aug_def["value"]
-
-        elif aug_def["type"] == "points":
-            one_time_points += aug_def["value"]
-
-        elif aug_def["type"] == "multiplier":
-            multiplier *= aug_def["value"]
+        # Only consider PASSIVE augments for point calculation
+        if aug_def["type"] == "PASSIVE_EFFECT":
+            if aug_def["effect"] == "MODIFY_BASE_POINTS":
+                base_points += aug_def["value"]
+            elif aug_def["effect"] == "MODIFY_POINT_MULTIPLIER":
+                multiplier += aug_def["value"]
 
     # apply multiplier last
-    total_points = int((base_points + one_time_points) * multiplier)
-
+    total_points = int(base_points * multiplier)
     return total_points
