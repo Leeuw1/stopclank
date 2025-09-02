@@ -1,14 +1,66 @@
 {
 	"reverse_string": {
 		"number":			0,
+		"difficulty":		0,
 		"descriptionHtml":	"Given a string <code>s</code>, return <code>s</code> but with the characters in reverse order.",
 		"codeTemplate":		"# Complete this function\ndef reverse_string(s):\n    ",
 		"tests":			["\"lion\"", "\"elephant\"", "\"giraffe\""]
 	},
 	"merge": {
 		"number":			1,
+		"difficulty":		0,
 		"descriptionHtml":	"Given two sorted arrays, <code>a</code> and <code>b</code>, return an array with the elements of both <code>a</code> and <code>b</code> but in sorted order.",
 		"codeTemplate":		"# Complete this function\ndef merge(a, b):\n    ",
 		"tests":			["[1, 2], [3, 4]", "[2, 5], [1, 3]"]
-	}
+	},
+    "fizzbuzz": {
+        "number":			2,
+		"difficulty":		1,
+        "descriptionHtml":	"Given an integer <code>n</code>, return a list of strings from 1 to <code>n</code>. If a number is divisible by 3, use \"Fizz\". If divisible by 5, use \"Buzz\". If divisible by both, use \"FizzBuzz\". Otherwise, use the number as a string.",
+        "codeTemplate":		"# Complete this function\ndef fizzbuzz(n):\n    ",
+        "tests":			["3", "5", "15"]
+    },
+	"roman_to_integer": {
+        "number":           3,
+        "difficulty":       2,
+        "descriptionHtml":  "Given a roman numeral as a string, convert it to an integer. Roman numerals are represented by seven different symbols: I, V, X, L, C, D and M.",
+        "codeTemplate":     "# Complete this function\ndef roman_to_integer(s):\n    ",
+        "tests":            ["\"III\"", "\"LVIII\"", "\"MCMXCIV\""]
+    },
+    "integer_to_roman": {
+        "number":           4,
+        "difficulty":       3,
+        "descriptionHtml":  "Given an integer, convert it to a roman numeral. The integer is guaranteed to be within the range from 1 to 3999.",
+        "codeTemplate":     "# Complete this function\ndef integer_to_roman(num):\n    ",
+        "tests":            ["3", "58", "1994"]
+    },
+	"add_two_numbers": {
+    	"number": 			5,
+    	"difficulty": 		4,
+    	"descriptionHtml": 	"You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.<br><br>A <code>ListNode</code> class will be provided for you.",
+    	"codeTemplate": 	"# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\ndef add_two_numbers(l1, l2):\n    ",
+    	"tests": 			["[2,4,3], [5,6,4]", "[0], [0]", "[9,9,9], [9,9]"]
+    },
+    "three_sum": {
+        "number": 			6,
+        "difficulty": 		5,
+        "descriptionHtml": 	"Given an integer array <code>nums</code>, return all the triplets <code>[nums[i], nums[j], nums[k]]</code> such that <code>i != j</code>, <code>i != k</code>, and <code>j != k</code>, and <code>nums[i] + nums[j] + nums[k] == 0</code>. <br><br>Notice that the solution set must not contain duplicate triplets.",
+        "codeTemplate": 	"# Complete this function\ndef three_sum(nums):\n    ",
+        "tests": 			["[-1,0,1,2,-1,-4]","[]", "[0]"]
+    },
+    "integer_to_english": {
+        "number": 			7,
+        "difficulty": 		6,
+        "descriptionHtml":	"Convert a non-negative integer <code>num</code> to its English words representation. The input is guaranteed to be less than 2<sup>31</sup> - 1.",
+        "codeTemplate": 	"# Complete this function\ndef number_to_words(num):\n    ",
+        "tests": 			["123", "12345", "1234567"]
+    },
+    "merge_k_lists": {
+        "number": 			8,
+        "difficulty": 		7,
+        "descriptionHtml": 	"You are given an array of <code>k</code> linked-lists <code>lists</code>, each linked-list is sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.<br><br>A <code>ListNode</code> class will be provided for you.",
+        "codeTemplate": 	"# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\ndef merge_k_lists(lists):\n    ",
+        "tests": 			["[[1,4,5],[1,3,4],[2,6]]", "[]", "[[]]"]
+    }
 }
+
