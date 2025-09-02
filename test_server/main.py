@@ -8,7 +8,6 @@ import string
 
 BAD_REQUEST = ({}, 400)
 MAX_CODE_LENGTH = 4096
-TIME_LIMIT_SECONDS = 4
 DEFAULT_POINT_INCREASE = 100
 with open('./augments.json', 'r') as file:
     AUGMENTS = json.load(file)
@@ -57,16 +56,15 @@ def test_submission():
             code_file.write(code)
             code_file.flush()
             args = ['sandbox', 'python', tester_path, os.path.basename(code_file.name)]
-            try:
-                status = subprocess.run(args, timeout=TIME_LIMIT_SECONDS, cwd=sandbox_root).returncode
-            except subprocess.TimeoutExpired:
-                return {'status': 'time_expired'}
+            status = subprocess.run(args, cwd=sandbox_root).returncode
 
     # TODO: error handling in case request fails
     if status == 0:
         request_body = {'p_username': username, 'p_score_increase': calculatePointIncrease(username, session_id), 'challenge': challenge}
         requests.post(f'http://db_api:3000/rpc/complete_level', request_body, cookies={'session_id': session_id})
         return {'status': 'level_complete'}
+    if status == 2:
+        return {'status': 'time_expired'}
     return {'status': 'fail'}
 
 def calculatePointIncrease(username, session_id):

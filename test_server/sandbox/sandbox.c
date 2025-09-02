@@ -14,6 +14,8 @@
 #include <seccomp.h>
 
 #define NUM_ALLOWED_SYSCALLS	(sizeof allowed_syscalls / sizeof *allowed_syscalls)
+#define TIMEOUT_SECONDS			2
+#define EXIT_TIMEOUT			2
 
 const int allowed_syscalls[] = {
 	SCMP_SYS(read),
@@ -104,6 +106,12 @@ int main(int argc, char** argv) {
 		.exit_signal	= SIGCHLD,
 		.cgroup			= cgroup_fd,
 	};
+	sigset_t sigset;
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGCHLD);
+	sigaddset(&sigset, SIGALRM);
+	sigprocmask(SIG_SETMASK, &sigset, NULL);
+	alarm(TIMEOUT_SECONDS);
 #ifdef DEBUG
 	fprintf(stderr, "Calling clone3()...\n");
 #endif
@@ -145,14 +153,21 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 	close(cgroup_fd);
+	int sig;
+	sigwait(&sigset, &sig);
 	int status;
+	if (sig == SIGALRM) {
+		kill(pid, SIGKILL);
+	}
 	if (waitpid(pid, &status, 0) == -1) {
 		perror("waitpid failed");
 		return EXIT_FAILURE;
 	}
 	if (rmdir(cgroup_path) == -1) {
 		perror("rmdir failed");
-		return EXIT_FAILURE;
+	}
+	if (sig == SIGALRM) {
+		return EXIT_TIMEOUT;
 	}
 #ifdef DEBUG
 	if (WIFEXITED(status)) {
@@ -164,7 +179,7 @@ int main(int argc, char** argv) {
 	}
 #else
 	if (WIFEXITED(status)) {
-		return WEXITSTATUS(status);
+		return WEXITSTATUS(status) == EXIT_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
 	// Child received fatal signal
 	return EXIT_FAILURE;
