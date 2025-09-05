@@ -21,15 +21,13 @@ app = Flask(__name__)
 def test_submission():
     try:
         session_id = request.cookies['session_id']
+        user_id = request.cookies['user_id']
     except KeyError:
         log_error('No session_id')
         return BAD_REQUEST
-    response = requests.get(f'http://db_api:3000/sessions?session_id=eq.{session_id}', cookies={'session_id': session_id})
-    try:
-        username = response.json()[0]['username']
-    except:
-        log_error('Invalid session')
-        return BAD_REQUEST
+
+    # TODO: maybe still check if session_id in sessions table
+
     try:
         code = request.json['code']
     except KeyError:
@@ -60,10 +58,10 @@ def test_submission():
 
     # TODO: error handling in case request fails
     if status == 0:
-        user_response = requests.get(f'http://db_api:3000/users?select=augments&username=eq.{username}', cookies={'session_id': session_id})
+        user_response = requests.get(f'http://db_api:3000/users?select=augments&id=eq.{user_id}', cookies={'session_id': session_id})
         user_augments = user_response.json()[0].get('augments', [])
 
-        request_body = {'p_username': username, 'p_score_increase': calculatePointIncrease(user_augments), 'challenge': challenge}
+        request_body = {'p_user_id': user_id, 'p_score_increase': calculatePointIncrease(user_augments), 'challenge': challenge}
         requests.post(f'http://db_api:3000/rpc/complete_level', request_body, cookies={'session_id': session_id})
         return {'status': 'level_complete'}
     if status == 2:
