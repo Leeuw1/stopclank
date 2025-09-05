@@ -152,9 +152,9 @@ td {
 /* --- Clickable Image Button for Home Page --- */
 .image-button-link {
     display: block;
-    text-align: center; /* Centers the image within the link block */
+    text-align: center; 
     margin: 2em auto;
-    width: fit-content; /* Ensures the link doesn't take up full width */
+    width: fit-content; 
 }
 
 .image-button {
@@ -174,16 +174,31 @@ td {
 }
 
 
-#story {
+/* --- Story Title and Lore Styles --- */
+#story-title {
+    background-color: #1a1a1a;
+    border: 1px solid var(--border-color);
+    padding: 1.5em;
+    margin-bottom: 2em; 
+    font-size: 1.2em;
+    color: var(--accent-green);
+    text-align: center;
+    min-height: 1.5em;
+    font-weight: bold;
+    /* No longer need the dashed border */
+}
+
+/* New style for the lore description */
+#story-lore {
     background-color: #1a1a1a;
     border: 1px solid var(--border-color);
     padding: 1.5em;
     margin-bottom: 2em;
-    font-size: 1.2em;
-    color: var(--accent-green);
-    text-align: center;
-    min-height: 1.5em; /* Reserve space while typing */
-    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--text-color);
+    text-align: left;
+    min-height: 1.5em;
+    font-style: italic;
 }
 
 .setting-highlight {

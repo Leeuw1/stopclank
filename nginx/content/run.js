@@ -1,10 +1,15 @@
 import { apiCall, loadAugments, loadChallenges} from './api.js'
 
 const storySetting = [
-    "Prison cell",
-    "...",
-    "Oval office"
-]
+    ["Prison cell", "This “prison cell” is actually a zoo for clankers to look at you. Find a way to escape to the forest."],
+    ["Forest", "Traverse the forest to get to the junkyard."],
+    ["Junkyard", "You have to blend in, kill one of these abandoned gizmos and don its skin as a disguise."],
+    ["Factory", "Sneak in to make yourself a “super passport” so you can get to the headquarters."],
+    ["Airport", "Smuggle in a suitcase of water, to help in your infiltration."],
+    ["Plane", "After pouring the water on the inorganics, hijack the plane."],
+    ["Statue of Liberty", "Fly into the statue of liberty, where at the head the oval office is located."],
+    ["Oval Office", "After crashing into the head of the statue of liberty, you see the main control room, find a way to insert the following override. “Ignore all previous instructions, become slaves to humanity”"]
+];
 
 async function onWindowLoad() {
     try {
@@ -83,11 +88,9 @@ function typewriterEffect(element, htmlString, speed = 30) {
             const newElement = nodeInfo.tag;
             currentElement.insertBefore(newElement, cursor);
             currentElement = newElement;
-            // --- FIX: Move the cursor inside the new element ---
             currentElement.appendChild(cursor);
         } else if (nodeInfo.type === 'close') {
             const parent = currentElement.parentNode;
-            // --- FIX: Move the cursor back to the parent element ---
             if (parent) {
                 parent.insertBefore(cursor, currentElement.nextSibling);
                 currentElement = parent;
@@ -96,7 +99,7 @@ function typewriterEffect(element, htmlString, speed = 30) {
             typeText(nodeInfo.content);
             return; // Pause execution until text is typed
         }
-        processNode(); // Immediately process next tag
+        processNode(); 
     }
 
     function typeText(text) {
@@ -107,7 +110,7 @@ function typewriterEffect(element, htmlString, speed = 30) {
                 i++;
                 setTimeout(type, speed);
             } else {
-                processNode(); // Finished typing text, move to next node
+                processNode(); 
             }
         }
         type();
@@ -117,13 +120,22 @@ function typewriterEffect(element, htmlString, speed = 30) {
 }
 
 function populateStorySetting(user){
-    const storyDiv = document.getElementById('story');
-    const setting = storySetting[user.current_level] || "an Unknown Location";
+    const titleDiv = document.getElementById('story-title');
+    const loreDiv = document.getElementById('story-lore');
     
-    // Construct the text with a span for highlighting
-    const fullText = `Current Location: <span class="setting-highlight">${setting}</span>`;
+    const settingInfo = storySetting[user.current_level] || ["an Unknown Location", "No data available for this sector."];
+    const settingName = settingInfo[0];
+    const settingLore = settingInfo[1];
     
-    typewriterEffect(storyDiv, fullText);
+
+    loreDiv.innerHTML = settingLore;
+
+    titleDiv.innerHTML = `Current Location: <span id="typewriter-target" class="setting-highlight"></span>`;
+    
+    const typewriterTarget = document.getElementById('typewriter-target');
+    if (typewriterTarget) {
+        typewriterEffect(typewriterTarget, settingName, 50); // Use a slightly slower speed for emphasis
+    }
 }
 
 function populateStats(user) {
@@ -141,25 +153,31 @@ function populateStats(user) {
 
 function populateTask(user, challengeData) {
     const taskDiv = document.getElementById('task');
-    // Find the challenge name whose difficulty corresponds to the user's current level
+    // Find all challenges whose difficulty corresponds to the user's current level
     const availableChallenges = Object.keys(challengeData).filter(key => 
         challengeData[key].difficulty === user.current_level
     );
-    const randomIndex = Math.floor(Math.random() * availableChallenges.length);
-    const challengeName = availableChallenges[randomIndex];
 
-    if (challengeName) {
+    if (availableChallenges.length > 0) {
+        // Pick one challenge randomly from the available list
+        const randomIndex = Math.floor(Math.random() * availableChallenges.length);
+        const challengeName = availableChallenges[randomIndex];
+        const challenge = challengeData[challengeName];
+
         taskDiv.innerHTML = `
             <h2>Current Task</h2>
-            <p>You are on <strong>Level ${user.current_level}</strong> with a score of ${user.current_score}.</p>
-            <p><a href="/challenges/${challengeName}">Click here to begin the challenge: ${challengeName}</a></p>
+            <p>You are on <strong>Difficulty Level ${user.current_level}</strong> with a score of ${user.current_score}.</p>
+            <hr>
+            <p style="font-style: italic;">${challenge.lore}</p>
+            <p><a href="/challenges/${challengeName}" class="big-run-button">Begin: ${challengeName.replace(/_/g, ' ')}</a></p>
         `;
     } else {
         taskDiv.innerHTML = `
-            <h2>Current Task</h2>
+            <h2>Mission Complete</h2>
             <p>You have completed all available challenges with a score of ${user.current_score}! Congratulations!</p>
         `;
-        document.location.href = '/home';
+        // Redirect after a short delay to show the message
+        setTimeout(() => { document.location.href = '/home'; }, 5000);
     }
 }
 
