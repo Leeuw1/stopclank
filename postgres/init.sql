@@ -31,10 +31,29 @@ GRANT USAGE ON SCHEMA extensions TO session_authorizer;
 GRANT SELECT, INSERT ON api.sessions TO session_authorizer;
 GRANT SELECT, INSERT ON api.users TO session_authorizer;
 
+CREATE ROLE test_server NOLOGIN;
+GRANT USAGE ON SCHEMA api TO test_server;
+GRANT SELECT, UPDATE ON api.users TO test_server;
+
 CREATE ROLE web_anon NOLOGIN;
 GRANT USAGE ON SCHEMA api TO web_anon;
-GRANT SELECT, UPDATE(challenges) ON api.users TO web_anon;
-GRANT SELECT ON api.sessions TO web_anon;
+GRANT SELECT(
+	id,
+	username,
+	challenges,
+	high_score,
+	furthest_level,
+	current_level,
+	current_score,
+	current_lives,
+	augments
+) ON api.users TO web_anon;
+GRANT UPDATE(
+	current_level,
+	current_score,
+	current_lives,
+	augments
+) ON api.users TO web_anon;
 GRANT web_anon TO authenticator;
 
 /* FUNCTIONS */
@@ -80,15 +99,16 @@ BEGIN
 		PERFORM set_config(
 			'response.headers',
 			format(
-			'[
-				{"Set-Cookie": "session_id=%s; Path=/api; Max-Age=86400; HttpOnly; SameSite=Lax"},
-				{"Set-Cookie": "user_id=%s; Path=/; Max-Age=86400; SameSite=Lax"}
-			]',
-			new_session_id,
-			user_id::TEXT
-		),
-		true
-	);	RETURN TRUE;
+				'[
+					{"Set-Cookie": "session_id=%s; Path=/api; Max-Age=86400; HttpOnly; SameSite=Lax"},
+					{"Set-Cookie": "user_id=%s; Path=/; Max-Age=86400; SameSite=Lax"}
+				]',
+				new_session_id,
+				user_id::TEXT
+			),
+			true
+		);
+		RETURN TRUE;
 	END IF;
 	RETURN success;
 END;
@@ -143,17 +163,17 @@ BEGIN
 	INSERT INTO api.sessions (session_id) VALUES (new_session_id);
 	/* TODO: Configure cookie expiration and use HTTPS + 'Secure' in cookie */
 	PERFORM set_config(
-			'response.headers',
-			format(
+		'response.headers',
+		format(
 			'[
 				{"Set-Cookie": "session_id=%s; Path=/api; Max-Age=86400; HttpOnly; SameSite=Lax"},
 				{"Set-Cookie": "user_id=%s; Path=/; Max-Age=86400; SameSite=Lax"}
 			]',
 			new_session_id, 
-			user_id         
+			user_id::TEXT
 		),
 		true
-	);	RETURN TRUE;
+	);
 	RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql
@@ -186,13 +206,12 @@ $$	LANGUAGE plpgsql
 
 ALTER FUNCTION validate_session() OWNER TO session_authorizer;
 REVOKE ALL ON FUNCTION validate_session() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION validate_session() TO web_anon;
+GRANT EXECUTE ON FUNCTION validate_session() TO web_anon, test_server;
 
 COMMIT;
 
 
 /* FUNCTION TO PROCESS A COMPLETED LEVEL */
-BEGIN;
 CREATE OR REPLACE FUNCTION api.complete_level(p_user_id INT, p_score_increase INT, challenge INT)
 RETURNS VOID AS $$
 DECLARE
@@ -208,11 +227,9 @@ BEGIN
         high_score = GREATEST(high_score, current_score + p_score_increase)
     WHERE id = p_user_id;
 END;
-$$  LANGUAGE plpgsql SECURITY DEFINER;
-COMMIT;
+$$  LANGUAGE plpgsql;
 
 
-BEGIN;
 /* FUNCTION TO ADD A CHOSEN AUGMENT TO A USER */
 CREATE OR REPLACE FUNCTION api.add_augment(p_user_id INT, p_augment_key TEXT)
 RETURNS VOID AS $$
@@ -251,10 +268,8 @@ BEGIN
         UPDATE api.users SET augments = array_append(augments, p_augment_key) WHERE id = p_user_id;
     END IF;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-COMMIT;
+$$ LANGUAGE plpgsql;
 
-BEGIN;
 CREATE OR REPLACE FUNCTION api.lose_life(user_id INT)
 RETURNS INT AS $$
 DECLARE
@@ -283,5 +298,4 @@ BEGIN
 	END IF;
     RETURN lives_left;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-COMMIT;
+$$ LANGUAGE plpgsql;

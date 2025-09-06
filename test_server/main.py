@@ -5,12 +5,14 @@ import tempfile
 import subprocess
 import sys
 import string
+import jwt
 
 BAD_REQUEST = ({}, 400)
 MAX_CODE_LENGTH = 4096
 DEFAULT_POINT_INCREASE = 100
 with open('./augments.json', 'r') as file:
     AUGMENTS = json.load(file)
+JWT = jwt.encode({'role': 'test_server'}, 'MonoidInTheCategoryOfEndofunctors', algorithm='HS256')
 
 def log_error(msg):
     sys.stderr.write('ERROR: ' + msg + '\n')
@@ -58,11 +60,13 @@ def test_submission():
 
     # TODO: error handling in case request fails
     if status == 0:
-        user_response = requests.get(f'http://db_api:3000/users?select=augments&id=eq.{user_id}', cookies={'session_id': session_id})
+        headers = {'Authorization': f'Bearer {JWT}'}
+        cookies = {'session_id': session_id}
+        user_response = requests.get(f'http://db_api:3000/users?select=augments&id=eq.{user_id}', headers=headers, cookies=cookies)
         user_augments = user_response.json()[0].get('augments', [])
 
         request_body = {'p_user_id': user_id, 'p_score_increase': calculatePointIncrease(user_augments), 'challenge': challenge}
-        requests.post(f'http://db_api:3000/rpc/complete_level', request_body, cookies={'session_id': session_id})
+        requests.post(f'http://db_api:3000/rpc/complete_level', request_body, headers=headers, cookies=cookies)
         return {'status': 'level_complete'}
     if status == 2:
         return {'status': 'time_expired'}

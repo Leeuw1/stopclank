@@ -10,7 +10,7 @@ window.onload = async () => {
         userId = userCookie.split('=')[1];
         console.log('User ID:', userId);
     
-        const userInfo = await apiCall('GET', '/api/db/users?id=eq.' + userId);
+        const userInfo = await apiCall('GET', '/api/db/users?select=augments&id=eq.' + userId);
         const allAugments = await loadAugments();
 
 		if (!userInfo || userInfo.length === 0) {

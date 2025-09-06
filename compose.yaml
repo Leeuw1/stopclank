@@ -25,6 +25,7 @@ services:
       - PGRST_DB_SCHEMAS=api
       - PGRST_DB_ANON_ROLE=web_anon
       - PGRST_DB_PRE_REQUEST=validate_session
+      - PGRST_JWT_SECRET=MonoidInTheCategoryOfEndofunctors
     ports:
       - "3000:3000"
     depends_on:

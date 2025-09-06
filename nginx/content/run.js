@@ -24,7 +24,10 @@ async function onWindowLoad() {
         const userId = userCookie.split('=')[1];
         
         //fetch the data
-        const userInfo = await apiCall('GET', '/api/db/users?id=eq.' + userId);
+        const userInfo = await apiCall(
+			'GET',
+			`/api/db/users?select=username,challenges,high_score,furthest_level,current_level,current_score,current_lives,augments&id=eq.${userId}`
+		);
         console.log('0: User info from API:', userInfo);
         const allAugments = await loadAugments();
         console.log('1: All augments from API:', allAugments);
