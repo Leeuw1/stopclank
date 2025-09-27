@@ -4,8 +4,8 @@ WORKDIR /usr/src/app
 # Flask
 COPY test_server/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
-ENV FLASK_RUN_PORT=3000
-EXPOSE 3000
+ENV FLASK_RUN_PORT=8000
+EXPOSE 8000
 
 # Sandbox
 RUN apk update
