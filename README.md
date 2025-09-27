@@ -1,4 +1,4 @@
-# StopClank — Full-Stack Interactive Coding Game
+# CodeVClank — Full-Stack Interactive Coding Game
 
 StopClank is a rogue-lite coding game. Solve algorithm challenges to progress through a story, earn augments, and advance through increasing difficulty.
 
