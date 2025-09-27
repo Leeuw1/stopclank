@@ -5,6 +5,12 @@ button.onclick = (event) => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const passwordConfirm = document.getElementById('password_confirm').value;
+    const termsCheckbox = document.getElementById('termsCheckbox');
+
+    if (!termsCheckbox.checked) {
+        alert("You must agree to the terms to sign up.");
+        return;
+    }
     if (password !== passwordConfirm) {
         alert("Passwords do not match!");
         return;
