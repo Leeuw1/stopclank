@@ -28,11 +28,8 @@ async function onWindowLoad() {
 			'GET',
 			`/api/db/users?select=username,challenges,high_score,furthest_level,current_level,current_score,current_lives,augments&id=eq.${userId}`
 		);
-        console.log('0: User info from API:', userInfo);
         const allAugments = await loadAugments();
-        console.log('1: All augments from API:', allAugments);
         const challengeData = await loadChallenges();
-        console.log('3: Challenge data:', challengeData);
 
 		if (!userInfo || userInfo.length === 0) {
 			throw new Error('User not found in database. Please try logging in again.');
