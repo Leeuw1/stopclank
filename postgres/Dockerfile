@@ -6,3 +6,4 @@ ADD https://github.com/pramsey/pgsql-http/archive/refs/tags/v1.7.0.tar.gz /pgsql
 RUN tar -xzf /pgsql-http.tar.gz
 RUN (cd /pgsql* && make && make install)
 COPY init.sql /docker-entrypoint-initdb.d/init.sql
+COPY postgresql.conf /etc/postgresql.conf
