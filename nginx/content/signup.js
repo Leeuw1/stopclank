@@ -17,7 +17,6 @@ button.onclick = (event) => {
         signup_password: password,
     };
     apiCall('POST', '/api/db/rpc/signup', requestBody).then(success => {
-        console.log('SQL is returning:', success);
         if (success) {
             alert("Signup successful! Please log in.");
             document.location.href = '/login';

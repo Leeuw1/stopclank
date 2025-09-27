@@ -8,7 +8,6 @@ window.onload = async () => {
     try {
         const userCookie = document.cookie.split('; ').find(row => row.startsWith('user_id='));
         userId = userCookie.split('=')[1];
-        console.log('User ID:', userId);
     
         const userInfo = await apiCall('GET', '/api/db/users?select=augments&id=eq.' + userId);
         const allAugments = await loadAugments();
@@ -71,7 +70,6 @@ function populateAugmentOptions(allAugments) {
 }
 
 async function handleAugmentChoice(augmentKey, augmentName, listElement) {
-    console.log(`Chose augment: ${augmentKey}`);
     listElement.innerHTML = `<p>Applying upgrade: <strong>${augmentName}</strong>...</p>`;
     
     try {
