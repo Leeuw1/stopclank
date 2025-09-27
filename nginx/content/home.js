@@ -12,18 +12,20 @@ window.onload = () => {
 
         const userId = userCookie.split('=')[1];
         console.log('User ID:', userId);
-        apiCall('GET', '/api/db/users?id=eq.' + userId)
-            .then(userInfo => { 
-                console.log('User info from API:', userInfo);
+        apiCall(
+			'GET',
+			`/api/db/users?select=username,challenges,high_score,furthest_level,current_level,current_score,current_lives,augments&id=eq.${userId}`
+		).then(userInfo => {
+			console.log('User info from API:', userInfo);
 
-                if (!userInfo || userInfo.length === 0) {
-                    throw new Error('User not found in database. Please try logging in again.');
-                }
-                populateProfile(userInfo);
-            }).catch(error => {
-                console.error('Failed to load page data:', error);
-                document.body.innerHTML = `<h1>Error loading page data</h1><p>${error.message}</p>`;
-            });
+			if (!userInfo || userInfo.length === 0) {
+				throw new Error('User not found in database. Please try logging in again.');
+			}
+			populateProfile(userInfo);
+		}).catch(error => {
+			console.error('Failed to load page data:', error);
+			document.body.innerHTML = `<h1>Error loading page data</h1><p>${error.message}</p>`;
+		});
     } catch (error) {
         console.error('Failed to parse cookie:', error);
         window.location.href = '/login';
@@ -53,7 +55,6 @@ function populateProfile(userArray) {
 
     profileDiv.innerHTML = `
         <h2>Profile: ${user.username}</h2>
-        <p><strong>ID:</strong> ${user.id}</p>
         <p><strong>High Score:</strong> ${user.high_score}</p>
         <p><strong>Furthest Level:</strong> ${user.furthest_level}</p>
         <p><strong>Current Level:</strong> ${user.current_level}</p>
