@@ -30,7 +30,6 @@ window.onload = () => {
 
     // If the cookie is found, the user is likely already logged in.
     if (userCookie) {
-        console.log('alr logged in!');
         document.location.href = '/home';
         return; 
     }
@@ -52,9 +51,7 @@ function handleGoogleResponse(response) {
 	// Send the ID token to your backend
 	apiCall('POST', '/api/db/rpc/login_google', { google_id_token: idToken })
 		.then((result) => {
-		console.log('SQL is returning:', result);
 		if (result) {
-			console.log('Success or error message: ' + result);
 			window.location.href = '/home'; // Redirect on successful login
 		} else {
 			console.error('Login failed on backend');

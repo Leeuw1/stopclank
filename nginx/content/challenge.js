@@ -11,7 +11,6 @@ if (!userCookie) {
 }
 
 const userInfo = await apiCall('GET', `/api/db/users?select=current_lives&id=eq.${userId}`);
-console.log('User lives from API:', userInfo);
 
 if (!userInfo || userInfo.length === 0) {
     throw new Error('User not found in database. Please try logging in again.');
@@ -84,7 +83,6 @@ button.onclick = (event) => {
 			setStatus('Failed.', '#ff2020');
 			//lose a life, returns # of lives left
 			apiCall('POST', '/api/db/rpc/lose_life', { user_id: userId }).then(result => {
-				console.log('lose_life is returning: ', result);
 				renderLives(result);
 				if (result <= 0) {
 					alert('You have no lives left! Returning to home page.');

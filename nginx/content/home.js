@@ -11,12 +11,10 @@ window.onload = () => {
         }
 
         const userId = userCookie.split('=')[1];
-        console.log('User ID:', userId);
         apiCall(
 			'GET',
 			`/api/db/users?select=username,challenges,high_score,furthest_level,current_level,current_score,current_lives,augments&id=eq.${userId}`
 		).then(userInfo => {
-			console.log('User info from API:', userInfo);
 
 			if (!userInfo || userInfo.length === 0) {
 				throw new Error('User not found in database. Please try logging in again.');
@@ -33,7 +31,6 @@ window.onload = () => {
 };
 
 function populateProfile(userArray) {
-    console.log('Populating profile with user data:', userArray);
     const profileDiv = document.getElementById('profile');
     if (!userArray || userArray.length === 0) {
         profileDiv.textContent = "No user data available.";
